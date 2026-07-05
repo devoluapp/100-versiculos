@@ -1,7 +1,9 @@
 package blog.robertotavares.cemversiculos.presentation.settings
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import blog.robertotavares.cemversiculos.core.ads.AdManager
 import blog.robertotavares.cemversiculos.core.notification.NotificationHelper
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
@@ -12,8 +14,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val adManager: AdManager
 ) : ViewModel() {
+
+    val categoryUnlocksVersion = settingsRepository.getCategoryUnlocksVersion()
 
     private val _userName = MutableStateFlow(settingsRepository.getUserName())
     val userName = _userName.asStateFlow()
@@ -78,9 +83,31 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun triggerImmediateNotification(context: Context) {
-        if (PermissionManager.hasNotificationPermission(context) && 
+        if (PermissionManager.hasNotificationPermission(context) &&
             PermissionManager.canScheduleExactAlarms(context)) {
             NotificationHelper.scheduleImmediate(context)
         }
+    }
+
+    fun isCategoryTemporarilyUnlocked(category: String): Boolean {
+        return settingsRepository.getCategoryUnlockExpiration(category) > System.currentTimeMillis()
+    }
+
+    fun unlockCategoryWithRewardedAd(activity: Activity, category: String, onResult: (Boolean) -> Unit) {
+        adManager.showRewardedAd(
+            activity,
+            onRewardEarned = {
+                settingsRepository.saveCategoryUnlockExpiration(
+                    category,
+                    System.currentTimeMillis() + CATEGORY_UNLOCK_DURATION_MILLIS
+                )
+                onResult(true)
+            },
+            onAdUnavailable = { onResult(false) }
+        )
+    }
+
+    companion object {
+        private const val CATEGORY_UNLOCK_DURATION_MILLIS = 24 * 60 * 60 * 1000L
     }
 }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +7,25 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+// IDs de teste oficiais do Google (https://developers.google.com/admob/android/test-ads)
+val admobTestAppId = "ca-app-pub-3940256099942544~3347511713"
+val admobTestBannerId = "ca-app-pub-3940256099942544/9214589741"
+val admobTestInterstitialId = "ca-app-pub-3940256099942544/1033173712"
+val admobTestRewardedId = "ca-app-pub-3940256099942544/5224354917"
+
+// IDs reais de produção: definidos em local.properties (não versionado), fora do repositório.
+// Ex.: admob.appId=ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+val releaseAdmobAppId = localProperties.getProperty("admob.appId", admobTestAppId)
+val releaseAdmobBannerId = localProperties.getProperty("admob.bannerId", admobTestBannerId)
+val releaseAdmobInterstitialId = localProperties.getProperty("admob.interstitialId", admobTestInterstitialId)
+val releaseAdmobRewardedId = localProperties.getProperty("admob.rewardedId", admobTestRewardedId)
 
 android {
     namespace = "blog.robertotavares.cemversiculos"
@@ -14,8 +35,8 @@ android {
         applicationId = "blog.robertotavares.cemversiculos"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,6 +45,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "ADMOB_APP_ID", "\"$admobTestAppId\"")
+            buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$admobTestBannerId\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"$admobTestInterstitialId\"")
+            buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"$admobTestRewardedId\"")
+            manifestPlaceholders["admobAppId"] = admobTestAppId
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -34,6 +62,11 @@ android {
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
             }
+            buildConfigField("String", "ADMOB_APP_ID", "\"$releaseAdmobAppId\"")
+            buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$releaseAdmobBannerId\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"$releaseAdmobInterstitialId\"")
+            buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"$releaseAdmobRewardedId\"")
+            manifestPlaceholders["admobAppId"] = releaseAdmobAppId
         }
     }
     compileOptions {
@@ -45,6 +78,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -65,7 +99,8 @@ dependencies {
     
     // Ads
     implementation("com.google.android.gms:play-services-ads:23.6.0")
-    
+    implementation("com.google.android.ump:user-messaging-platform:3.1.0")
+
     // ViewModel Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
@@ -90,7 +125,13 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 
     // Google Play Billing
-    implementation("com.android.billingclient:billing-ktx:6.1.0")
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
+
+    // Home screen widget (Glance) + atualização em background
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation("androidx.hilt:hilt-work:1.3.0")
+    ksp("androidx.hilt:hilt-compiler:1.3.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

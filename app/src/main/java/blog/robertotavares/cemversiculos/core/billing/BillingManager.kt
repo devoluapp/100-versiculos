@@ -18,7 +18,7 @@ class BillingManager @Inject constructor(
 
     private val billingClient = BillingClient.newBuilder(context)
         .setListener(this)
-        .enablePendingPurchases()
+        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
         .build()
 
     private val _products = MutableStateFlow<List<ProductDetails>>(emptyList())
@@ -51,6 +51,10 @@ class BillingManager @Inject constructor(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("anual_5900")
                 .setProductType(BillingClient.ProductType.SUBS)
+                .build(),
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId("vitalicio_14900")
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build()
         )
 
@@ -66,17 +70,16 @@ class BillingManager @Inject constructor(
     }
 
     fun launchBillingFlow(activity: Activity, productDetails: ProductDetails) {
-        val offerToken = productDetails.subscriptionOfferDetails?.getOrNull(0)?.offerToken ?: ""
-        
-        val productDetailsParamsList = listOf(
-            BillingFlowParams.ProductDetailsParams.newBuilder()
-                .setProductDetails(productDetails)
-                .setOfferToken(offerToken)
-                .build()
-        )
+        val offerToken = productDetails.subscriptionOfferDetails?.getOrNull(0)?.offerToken
+
+        val productDetailsParamsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(productDetails)
+        if (offerToken != null) {
+            productDetailsParamsBuilder.setOfferToken(offerToken)
+        }
 
         val billingFlowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(productDetailsParamsList)
+            .setProductDetailsParamsList(listOf(productDetailsParamsBuilder.build()))
             .build()
 
         billingClient.launchBillingFlow(activity, billingFlowParams)
@@ -108,15 +111,35 @@ class BillingManager @Inject constructor(
     }
 
     private fun checkActivePurchases() {
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
+        var hasActiveSubscription = false
+        var hasLifetimePurchase = false
+        var subsChecked = false
+        var inappChecked = false
 
-        billingClient.queryPurchasesAsync(params) { billingResult, purchases ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                val isPremium = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
-                settingsRepository.saveIsPremium(isPremium)
+        fun evaluate() {
+            if (subsChecked && inappChecked) {
+                settingsRepository.saveIsPremium(hasActiveSubscription || hasLifetimePurchase)
             }
+        }
+
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
+        ) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                hasActiveSubscription = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+            }
+            subsChecked = true
+            evaluate()
+        }
+
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build()
+        ) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                hasLifetimePurchase = purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+            }
+            inappChecked = true
+            evaluate()
         }
     }
 }

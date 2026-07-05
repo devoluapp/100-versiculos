@@ -1,8 +1,10 @@
 package blog.robertotavares.cemversiculos.presentation.settings
 
 import android.Manifest
+import android.app.Activity
 import android.app.TimePickerDialog
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -26,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
 import java.util.Locale
@@ -54,9 +58,11 @@ fun SettingsScreen(
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
     val canScheduleExactAlarms by viewModel.canScheduleExactAlarms.collectAsState()
     val isPremium by homeViewModel.isPremium.collectAsState()
-    
+    val categoryUnlocksVersion by viewModel.categoryUnlocksVersion.collectAsState()
+
     val context = LocalContext.current
     var showPermissionModal by remember { mutableStateOf(false) }
+    var categoryToUnlock by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.checkPermissions(context)
@@ -72,16 +78,16 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Configurações", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.title_settings), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 actions = {
                     if (!isPremium) {
                         IconButton(onClick = onNavigateToPaywall) {
-                            Icon(Icons.Default.Star, contentDescription = "Premium", tint = Color(0xFFFFD700))
+                            Icon(Icons.Default.Star, contentDescription = stringResource(R.string.cd_premium), tint = Color(0xFFFFD700))
                         }
                     }
                 },
@@ -100,11 +106,11 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             // Seção: Perfil
-            SettingsSection(title = "Perfil", icon = Icons.Default.Person) {
+            SettingsSection(title = stringResource(R.string.section_profile), icon = Icons.Default.Person) {
                 OutlinedTextField(
                     value = userName,
                     onValueChange = viewModel::updateUserName,
-                    label = { Text("Seu Nome") },
+                    label = { Text(stringResource(R.string.label_your_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true
@@ -112,7 +118,7 @@ fun SettingsScreen(
             }
 
             // Seção: Temas com Preview
-            SettingsSection(title = "Tema Visual", icon = Icons.Default.Edit) {
+            SettingsSection(title = stringResource(R.string.section_theme), icon = Icons.Default.Edit) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     ThemePreview(themeName = selectedTheme)
                     
@@ -122,7 +128,7 @@ fun SettingsScreen(
                     ) {
                         val themes = listOf("Natureza", "Oceano", "Crepúsculo", "Areia")
                         themes.forEach { theme ->
-                            val isExclusive = theme == "Crepúsculo" || theme == "Areia"
+                            val isExclusive = theme == "Crepúsculo"
                             ThemeChip(
                                 name = theme,
                                 isSelected = selectedTheme == theme,
@@ -143,7 +149,7 @@ fun SettingsScreen(
             }
 
             // Seção: Categoria
-            SettingsSection(title = "Categoria Principal", icon = Icons.AutoMirrored.Filled.List) {
+            SettingsSection(title = stringResource(R.string.section_category), icon = Icons.AutoMirrored.Filled.List) {
                 val allCategories = listOf(
                     "Gratidão", "Fé", "Luto", "Medo", "Raiva", 
                     "Oração", "Perdão", "Solidão", "Tristeza", 
@@ -158,12 +164,15 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     allCategories.forEach { category ->
-                        val isLocked = !freeCategories.contains(category) && !isPremium
+                        val isTemporarilyUnlocked = remember(categoryUnlocksVersion, category) {
+                            viewModel.isCategoryTemporarilyUnlocked(category)
+                        }
+                        val isLocked = !freeCategories.contains(category) && !isPremium && !isTemporarilyUnlocked
                         FilterChip(
                             selected = selectedCategory == category,
-                            onClick = { 
+                            onClick = {
                                 if (isLocked) {
-                                    onNavigateToPaywall()
+                                    categoryToUnlock = category
                                 } else {
                                     viewModel.updateCategory(category)
                                     homeViewModel.selectCategory(category)
@@ -185,7 +194,7 @@ fun SettingsScreen(
             }
 
             // Seção: Notificações
-            SettingsSection(title = "Lembretes Diários", icon = Icons.Default.Notifications) {
+            SettingsSection(title = stringResource(R.string.section_reminders), icon = Icons.Default.Notifications) {
                 if (!hasNotificationPermission || !canScheduleExactAlarms) {
                     Button(
                         onClick = { showPermissionModal = true },
@@ -198,7 +207,7 @@ fun SettingsScreen(
                     ) {
                         Icon(Icons.Default.Warning, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Configurar Permissões Necessárias")
+                        Text(stringResource(R.string.action_configure_permissions))
                     }
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -208,14 +217,14 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Vezes ao dia", style = MaterialTheme.typography.bodyLarge)
+                                Text(stringResource(R.string.label_times_per_day), style = MaterialTheme.typography.bodyLarge)
                                 if (!isPremium) {
-                                    Text("Grátis: Máx 5/dia", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Text(stringResource(R.string.label_free_max_5), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { if (frequency > 1) viewModel.updateFrequency(context, frequency - 1) }) {
-                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Diminuir")
+                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_decrease))
                                 }
                                 Text(
                                     frequency.toString(),
@@ -223,7 +232,7 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 )
-                                IconButton(onClick = { 
+                                IconButton(onClick = {
                                     if (frequency < 5 || isPremium) {
                                         if (frequency < 20) viewModel.updateFrequency(context, frequency + 1)
                                     } else {
@@ -232,7 +241,7 @@ fun SettingsScreen(
                                 }) {
                                     Icon(
                                         imageVector = if (frequency >= 5 && !isPremium) Icons.Default.Lock else Icons.Default.KeyboardArrowUp,
-                                        contentDescription = "Aumentar",
+                                        contentDescription = stringResource(R.string.cd_increase),
                                         modifier = Modifier.size(if (frequency >= 5 && !isPremium) 18.dp else 24.dp)
                                     )
                                 }
@@ -244,7 +253,7 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             TimeSettingCard(
-                                label = "Início",
+                                label = stringResource(R.string.label_start_time),
                                 time = startTime,
                                 modifier = Modifier.weight(1f),
                                 onClick = {
@@ -255,7 +264,7 @@ fun SettingsScreen(
                                 }
                             )
                             TimeSettingCard(
-                                label = "Fim",
+                                label = stringResource(R.string.label_end_time),
                                 time = endTime,
                                 modifier = Modifier.weight(1f),
                                 onClick = {
@@ -291,6 +300,39 @@ fun SettingsScreen(
             canScheduleExactAlarms = canScheduleExactAlarms
         )
     }
+
+    categoryToUnlock?.let { category ->
+        AlertDialog(
+            onDismissRequest = { categoryToUnlock = null },
+            title = { Text(stringResource(R.string.title_unlock_category)) },
+            text = { Text(stringResource(R.string.desc_unlock_category)) },
+            confirmButton = {
+                Button(onClick = {
+                    categoryToUnlock = null
+                    onNavigateToPaywall()
+                }) {
+                    Text(stringResource(R.string.action_premium_option))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    categoryToUnlock = null
+                    (context as? Activity)?.let { activity ->
+                        viewModel.unlockCategoryWithRewardedAd(activity, category) { success ->
+                            if (success) {
+                                viewModel.updateCategory(category)
+                                homeViewModel.selectCategory(category)
+                            } else {
+                                Toast.makeText(context, context.getString(R.string.error_ad_unavailable), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }) {
+                    Text(stringResource(R.string.action_watch_ad_24h))
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -316,10 +358,10 @@ fun PermissionStatusItem(title: String, isGranted: Boolean, onAction: () -> Unit
         }
         if (!isGranted) {
             TextButton(onClick = onAction) {
-                Text("PERMITIR")
+                Text(stringResource(R.string.action_allow))
             }
         } else {
-            Text("ATIVO", color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.label_active), color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelMedium)
         }
     }
 }
@@ -334,17 +376,17 @@ fun PermissionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Permissões Necessárias") },
+        title = { Text(stringResource(R.string.dialog_permissions_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                val appName = androidx.compose.ui.res.stringResource(id = blog.robertotavares.cemversiculos.R.string.app_name)
-                Text("Para que o $appName funcione corretamente, precisamos de algumas permissões:")
-                
+                val appName = stringResource(id = R.string.app_name)
+                Text(stringResource(R.string.dialog_permissions_message, appName))
+
                 if (!hasNotificationPermission) {
-                    Text("• Notificações: Para enviar versículos diários.")
+                    Text(stringResource(R.string.dialog_permission_notifications))
                 }
                 if (!canScheduleExactAlarms) {
-                    Text("• Alarmes Exatos: Para garantir que cheguem no horário exato.")
+                    Text(stringResource(R.string.dialog_permission_alarms))
                 }
             }
         },
@@ -354,12 +396,12 @@ fun PermissionDialog(
                 else if (!canScheduleExactAlarms) onGrantAlarms()
                 else onDismiss()
             }) {
-                Text("CONFIGURAR")
+                Text(stringResource(R.string.action_configure))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCELAR")
+                Text(stringResource(R.string.action_cancel))
             }
         },
         shape = RoundedCornerShape(24.dp)

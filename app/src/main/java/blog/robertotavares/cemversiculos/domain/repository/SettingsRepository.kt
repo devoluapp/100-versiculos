@@ -26,4 +26,13 @@ interface SettingsRepository {
     fun isPremium(): Boolean
     fun saveIsPremium(isPremium: Boolean)
     fun getPremiumFlow(): StateFlow<Boolean>
+
+    fun getCategoryUnlockExpiration(category: String): Long
+    fun saveCategoryUnlockExpiration(category: String, expirationMillis: Long)
+    fun getCategoryUnlocksVersion(): StateFlow<Int>
+
+    fun saveWidgetVerse(verse: WidgetVerse)
+    fun getWidgetVerse(): WidgetVerse?
 }
+
+data class WidgetVerse(val text: String, val reference: String?)

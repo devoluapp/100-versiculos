@@ -5,7 +5,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import blog.robertotavares.cemversiculos.R
 
 @Composable
 fun MyListScreen() {
@@ -17,9 +19,9 @@ fun MyListScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Minha Lista", style = MaterialTheme.typography.headlineMedium)
+            Text(text = stringResource(R.string.title_my_list), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Em breve: Suas conteúdos favoritas aparecerão aqui.")
+            Text(text = stringResource(R.string.label_coming_soon_favorites))
         }
     }
 }

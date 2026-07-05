@@ -23,9 +23,6 @@ class OnboardingViewModel @Inject constructor(
 
     fun updateUserName(name: String) {
         _userName.value = name
-        if (name.trim() == "ADMIN123") {
-            settingsRepository.saveIsPremium(true)
-        }
     }
 
     fun updateTheme(theme: String) {

@@ -2,6 +2,7 @@ package blog.robertotavares.cemversiculos.data.repository
 
 import blog.robertotavares.cemversiculos.core.utils.PreferenceManager
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
+import blog.robertotavares.cemversiculos.domain.repository.WidgetVerse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,5 +76,25 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun saveIsPremium(isPremium: Boolean) {
         preferenceManager.saveIsPremium(isPremium)
         _premiumFlow.value = isPremium
+    }
+
+    private val _categoryUnlocksVersion = MutableStateFlow(0)
+    override fun getCategoryUnlocksVersion(): StateFlow<Int> = _categoryUnlocksVersion.asStateFlow()
+
+    override fun getCategoryUnlockExpiration(category: String): Long =
+        preferenceManager.getCategoryUnlockExpiration(category)
+
+    override fun saveCategoryUnlockExpiration(category: String, expirationMillis: Long) {
+        preferenceManager.saveCategoryUnlockExpiration(category, expirationMillis)
+        _categoryUnlocksVersion.value++
+    }
+
+    override fun saveWidgetVerse(verse: WidgetVerse) {
+        preferenceManager.saveWidgetVerse(verse.text, verse.reference)
+    }
+
+    override fun getWidgetVerse(): WidgetVerse? {
+        val text = preferenceManager.getWidgetVerseText() ?: return null
+        return WidgetVerse(text, preferenceManager.getWidgetVerseReference())
     }
 }

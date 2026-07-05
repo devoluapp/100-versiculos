@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -151,7 +152,7 @@ fun WelcomeStep(onNext: () -> Unit) {
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Versículos Bíblicos Diários",
+            text = stringResource(R.string.subtitle_app_tagline),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
@@ -161,7 +162,7 @@ fun WelcomeStep(onNext: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("COMEÇAR", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_start), modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -174,7 +175,7 @@ fun NameStep(userName: String, onNameChange: (String) -> Unit, onNext: () -> Uni
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Olá! Como te chamamos?",
+            text = stringResource(R.string.title_name_step),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -182,7 +183,7 @@ fun NameStep(userName: String, onNameChange: (String) -> Unit, onNext: () -> Uni
         OutlinedTextField(
             value = userName,
             onValueChange = onNameChange,
-            label = { Text("Seu Nome (Opcional)") },
+            label = { Text(stringResource(R.string.label_your_name_optional)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             singleLine = true
@@ -193,7 +194,7 @@ fun NameStep(userName: String, onNameChange: (String) -> Unit, onNext: () -> Uni
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("CONTINUAR", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_continue), modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -208,7 +209,7 @@ fun ThemesStep(selectedTheme: String, isPremium: Boolean, onThemeSelect: (String
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Escolha um estilo",
+            text = stringResource(R.string.title_theme_step),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -235,7 +236,7 @@ fun ThemesStep(selectedTheme: String, isPremium: Boolean, onThemeSelect: (String
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("CONTINUAR", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_continue), modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -299,7 +300,7 @@ fun CategoriesStep(selectedCategories: Set<String>, isPremium: Boolean, onToggle
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
         Spacer(modifier = Modifier.height(48.dp))
         Text(
-            text = "O que você busca?",
+            text = stringResource(R.string.title_categories_step),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -330,7 +331,7 @@ fun CategoriesStep(selectedCategories: Set<String>, isPremium: Boolean, onToggle
             shape = RoundedCornerShape(16.dp),
             enabled = selectedCategories.isNotEmpty()
         ) {
-            Text("CONTINUAR", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_continue), modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -385,13 +386,13 @@ fun PermissionsStep(onRequest: () -> Unit, onSkip: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Lembretes Diários",
+            text = stringResource(R.string.section_reminders),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Permita as notificações para que possamos enviar versículos inspiradores ao longo do seu dia.",
+            text = stringResource(R.string.desc_permission_notifications),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -402,9 +403,9 @@ fun PermissionsStep(onRequest: () -> Unit, onSkip: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("PERMITIR", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_allow), modifier = Modifier.padding(8.dp))
         }
-        TextButton(onClick = onSkip) { Text("Agora não") }
+        TextButton(onClick = onSkip) { Text(stringResource(R.string.action_not_now)) }
     }
 }
 
@@ -423,13 +424,13 @@ fun TutorialStep(onFinish: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Tudo pronto!",
+            text = stringResource(R.string.title_tutorial_ready),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Agora você está pronto para começar sua jornada. Aproveite cada versículo e deixe que eles transformem o seu dia.",
+            text = stringResource(R.string.desc_tutorial_ready),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -440,7 +441,7 @@ fun TutorialStep(onFinish: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("COMEÇAR AGORA", modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_start_now), modifier = Modifier.padding(8.dp))
         }
     }
 }

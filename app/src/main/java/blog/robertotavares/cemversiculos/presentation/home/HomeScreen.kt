@@ -1,5 +1,7 @@
 package blog.robertotavares.cemversiculos.presentation.home
 
+import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Picture
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -36,12 +38,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.ShareUtils
 import blog.robertotavares.cemversiculos.data.local.ContentItemEntity
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -58,7 +64,8 @@ fun HomeScreen(
     val shouldTriggerShare by viewModel.shouldTriggerShare.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
-    
+    val showFavoriteLimitDialog by viewModel.showFavoriteLimitDialog.collectAsState()
+
     var showTutorial by remember { mutableStateOf(!viewModel.isOnboardingCompleted()) }
 
     val stableContents = remember(contents) { contents }
@@ -88,11 +95,25 @@ fun HomeScreen(
         }
     }
 
+    var isFirstPage by remember { mutableStateOf(true) }
     LaunchedEffect(pagerState.currentPage) {
         if (stableContents.isNotEmpty()) {
+            if (isFirstPage) {
+                isFirstPage = false
+            } else {
+                viewModel.onVerseSwiped()
+            }
             val actualIndex = pagerState.currentPage % stableContents.size
             delay(2000)
             viewModel.markAsShown(stableContents[actualIndex])
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.interstitialEvent.collect {
+            (context as? Activity)?.let { activity ->
+                viewModel.showInterstitial(activity)
+            }
         }
     }
 
@@ -118,11 +139,11 @@ fun HomeScreen(
                     ) {
                         Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("SEJA PREMIUM", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(stringResource(R.string.action_be_premium), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 } else {
                     Text(
-                        text = "Premium Ativado",
+                        text = stringResource(R.string.label_premium_active),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFFFFD700),
                         fontWeight = FontWeight.Bold
@@ -138,7 +159,7 @@ fun HomeScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = "Configurações",
+                        contentDescription = stringResource(R.string.cd_settings),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -235,25 +256,18 @@ fun HomeScreen(
                             ) {
                                  ContentCard(
                                     content = content,
-                                    isPremium = isPremium,
                                     isCapturing = true,
                                     onShare = {},
                                     onFavorite = {},
-                                    onNavigateToPaywall = onNavigateToPaywall,
                                     modifier = Modifier.width(400.dp).wrapContentHeight()
                                 )
                             }
 
                             ContentCard(
                                 content = content,
-                                isPremium = isPremium,
                                 isCapturing = false,
                                 onShare = handleShare,
-                                onFavorite = { 
-                                    if (isPremium) viewModel.toggleFavorite(content) 
-                                    else onNavigateToPaywall()
-                                },
-                                onNavigateToPaywall = onNavigateToPaywall,
+                                onFavorite = { viewModel.toggleFavorite(content) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight()
@@ -263,28 +277,69 @@ fun HomeScreen(
                 }
             }
             
-            // Ad Placeholder for Free Users
+            // Banner adaptativo para usuários Free
             if (!isPremium) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Anúncio (Remova com Premium)",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    )
-                }
+                AdaptiveBannerAd(adUnitId = viewModel.bannerAdUnitId)
             }
         }
 
         if (showTutorial) {
             TutorialModal(onDismiss = { showTutorial = false })
         }
+
+        if (showFavoriteLimitDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissFavoriteLimitDialog() },
+                title = { Text(stringResource(R.string.title_favorite_limit)) },
+                text = { Text(stringResource(R.string.desc_favorite_limit)) },
+                confirmButton = {
+                    Button(onClick = {
+                        viewModel.dismissFavoriteLimitDialog()
+                        onNavigateToPaywall()
+                    }) {
+                        Text(stringResource(R.string.action_be_premium))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.dismissFavoriteLimitDialog() }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun AdaptiveBannerAd(adUnitId: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val adSize = remember { currentAdaptiveBannerAdSize(context) }
+
+    val adView = remember(adUnitId) {
+        AdView(context).apply {
+            setAdSize(adSize)
+            this.adUnitId = adUnitId
+        }
+    }
+
+    DisposableEffect(adView) {
+        adView.loadAd(AdRequest.Builder().build())
+        onDispose { adView.destroy() }
+    }
+
+    AndroidView(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(adSize.height.dp),
+        factory = { adView }
+    )
+}
+
+private fun currentAdaptiveBannerAdSize(context: Context): AdSize {
+    val displayMetrics = context.resources.displayMetrics
+    val adWidthPixels = displayMetrics.widthPixels.toFloat()
+    val adWidthDp = (adWidthPixels / displayMetrics.density).toInt()
+    return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidthDp)
 }
 
 @Composable
@@ -292,23 +347,23 @@ fun TutorialModal(onDismiss: () -> Unit) {
     var step by remember { mutableStateOf(0) }
     val tutorialSteps = listOf(
         TutorialItem(
-            "Bem-vindo!", 
-            "Deslize para o lado para navegar entre os versículos.", 
+            stringResource(R.string.tutorial_title_welcome),
+            stringResource(R.string.tutorial_desc_welcome),
             Icons.Default.Refresh
         ),
         TutorialItem(
-            "Favoritos", 
-            "Clique no coração para salvar os versículos que mais tocam seu coração.", 
+            stringResource(R.string.tutorial_title_favorites),
+            stringResource(R.string.tutorial_desc_favorites),
             Icons.Default.Favorite
         ),
         TutorialItem(
-            "Compartilhar", 
-            "Gere uma imagem linda do versículo para compartilhar com quem você ama.", 
+            stringResource(R.string.tutorial_title_share),
+            stringResource(R.string.tutorial_desc_share),
             Icons.Default.Share
         ),
         TutorialItem(
-            "Configurações", 
-            "Acesse o ícone de engrenagem para mudar seu nome, escolher temas e categorias.", 
+            stringResource(R.string.cd_settings),
+            stringResource(R.string.tutorial_desc_settings),
             Icons.Default.Settings
         )
     )
@@ -352,7 +407,7 @@ fun TutorialModal(onDismiss: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(48.dp))
                 Text(
-                    text = if (step < tutorialSteps.size - 1) "Toque para continuar" else "Toque para começar",
+                    text = if (step < tutorialSteps.size - 1) stringResource(R.string.tutorial_next) else stringResource(R.string.tutorial_start),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
@@ -378,7 +433,7 @@ fun EmptyState(category: String) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = if (category == "Favoritas") "Você ainda não tem versículos favoritos." else "Não há versículos para esta categoria.",
+            text = if (category == "Favoritas") stringResource(R.string.empty_favorites) else stringResource(R.string.empty_category),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -388,12 +443,10 @@ fun EmptyState(category: String) {
 
 @Composable
 fun ContentCard(
-    content: ContentItemEntity, 
-    isPremium: Boolean,
+    content: ContentItemEntity,
     isCapturing: Boolean,
     onShare: () -> Unit,
     onFavorite: () -> Unit,
-    onNavigateToPaywall: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appName = stringResource(id = R.string.app_name)
@@ -483,13 +536,10 @@ fun ContentCard(
                 ) {
                     Icon(
                         imageVector = if (content.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favoritar",
-                        tint = if (!isPremium) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f) else if (content.isFavorite) Color.Red else MaterialTheme.colorScheme.onBackground,
+                        contentDescription = stringResource(R.string.cd_favorite),
+                        tint = if (content.isFavorite) Color.Red else MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(20.dp)
                     )
-                    if (!isPremium) {
-                        Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(12.dp).align(Alignment.TopEnd), tint = Color.Gray)
-                    }
                 }
                 
                 Box(
@@ -501,8 +551,8 @@ fun ContentCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Share, 
-                        contentDescription = "Compartilhar",
+                        imageVector = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.cd_share),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(20.dp)
                     )
@@ -534,7 +584,7 @@ fun ContentCard(
                     )
                 }
                 Text(
-                    text = "Baixe na Play Store",
+                    text = stringResource(R.string.label_download_play_store),
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )

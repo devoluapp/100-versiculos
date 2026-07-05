@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import blog.robertotavares.cemversiculos.core.ads.AdManager
 import blog.robertotavares.cemversiculos.core.notification.NotificationReceiver
 import blog.robertotavares.cemversiculos.presentation.home.HomeScreen
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
@@ -21,17 +22,22 @@ import blog.robertotavares.cemversiculos.presentation.settings.SettingsScreen
 import blog.robertotavares.cemversiculos.presentation.paywall.PaywallScreen
 import blog.robertotavares.cemversiculos.presentation.theme.BaseTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
+
     private val homeViewModel: HomeViewModel by viewModels()
+
+    @Inject lateinit var adManager: AdManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         intent?.let { handleIntent(it) }
-        
+
+        adManager.requestConsentAndInitialize(this)
+
         setContent {
             val currentTheme by homeViewModel.currentTheme.collectAsState()
             BaseTheme(themeName = currentTheme) {

@@ -85,4 +85,23 @@ class PreferenceManager @Inject constructor(
     fun isPremium(): Boolean {
         return sharedPreferences.getBoolean("is_premium", false)
     }
+
+    fun saveCategoryUnlockExpiration(category: String, expirationMillis: Long) {
+        sharedPreferences.edit { putLong("category_unlock_$category", expirationMillis) }
+    }
+
+    fun getCategoryUnlockExpiration(category: String): Long {
+        return sharedPreferences.getLong("category_unlock_$category", 0L)
+    }
+
+    fun saveWidgetVerse(text: String, reference: String?) {
+        sharedPreferences.edit {
+            putString("widget_verse_text", text)
+            putString("widget_verse_reference", reference)
+        }
+    }
+
+    fun getWidgetVerseText(): String? = sharedPreferences.getString("widget_verse_text", null)
+
+    fun getWidgetVerseReference(): String? = sharedPreferences.getString("widget_verse_reference", null)
 }

@@ -1,3 +1,104 @@
 <resources>
     <string name="app_name">Versículos do dia</string>
+
+    <!-- Ações comuns -->
+    <string name="action_continue">CONTINUAR</string>
+    <string name="action_start">COMEÇAR</string>
+    <string name="action_start_now">COMEÇAR AGORA</string>
+    <string name="action_allow">PERMITIR</string>
+    <string name="action_not_now">Agora não</string>
+    <string name="action_cancel">CANCELAR</string>
+    <string name="action_configure">CONFIGURAR</string>
+    <string name="action_configure_permissions">Configurar Permissões Necessárias</string>
+    <string name="action_be_premium">SEJA PREMIUM</string>
+    <string name="label_active">ATIVO</string>
+
+    <!-- Descrições de conteúdo (acessibilidade) -->
+    <string name="cd_back">Voltar</string>
+    <string name="cd_close">Fechar</string>
+    <string name="cd_premium">Premium</string>
+    <string name="cd_settings">Configurações</string>
+    <string name="cd_decrease">Diminuir</string>
+    <string name="cd_increase">Aumentar</string>
+    <string name="cd_favorite">Favoritar</string>
+    <string name="cd_share">Compartilhar</string>
+
+    <!-- Tela de Configurações -->
+    <string name="title_settings">Configurações</string>
+    <string name="section_profile">Perfil</string>
+    <string name="section_theme">Tema Visual</string>
+    <string name="section_category">Categoria Principal</string>
+    <string name="section_reminders">Lembretes Diários</string>
+    <string name="label_your_name">Seu Nome</string>
+    <string name="label_times_per_day">Vezes ao dia</string>
+    <string name="label_free_max_5">Grátis: Máx 5/dia</string>
+    <string name="label_start_time">Início</string>
+    <string name="label_end_time">Fim</string>
+    <string name="dialog_permissions_title">Permissões Necessárias</string>
+    <string name="dialog_permissions_message">Para que o %1$s funcione corretamente, precisamos de algumas permissões:</string>
+    <string name="dialog_permission_notifications">• Notificações: Para enviar versículos diários.</string>
+    <string name="dialog_permission_alarms">• Alarmes Exatos: Para garantir que cheguem no horário exato.</string>
+
+    <!-- Tela Home -->
+    <string name="label_premium_active">Premium Ativado</string>
+    <string name="label_download_play_store">Baixe na Play Store</string>
+    <string name="empty_favorites">Você ainda não tem versículos favoritos.</string>
+    <string name="empty_category">Não há versículos para esta categoria.</string>
+    <string name="tutorial_title_welcome">Bem-vindo!</string>
+    <string name="tutorial_desc_welcome">Deslize para o lado para navegar entre os versículos.</string>
+    <string name="tutorial_title_favorites">Favoritos</string>
+    <string name="tutorial_desc_favorites">Clique no coração para salvar os versículos que mais tocam seu coração.</string>
+    <string name="tutorial_title_share">Compartilhar</string>
+    <string name="tutorial_desc_share">Gere uma imagem linda do versículo para compartilhar com quem você ama.</string>
+    <string name="tutorial_desc_settings">Acesse o ícone de engrenagem para mudar seu nome, escolher temas e categorias.</string>
+    <string name="tutorial_next">Toque para continuar</string>
+    <string name="tutorial_start">Toque para começar</string>
+
+    <!-- Tela Minha Lista -->
+    <string name="title_my_list">Minha Lista</string>
+    <string name="label_coming_soon_favorites">Em breve: Suas conteúdos favoritas aparecerão aqui.</string>
+
+    <!-- Tela Paywall -->
+    <string name="title_be_premium">Seja Premium</string>
+    <string name="subtitle_premium">Desbloqueie todo o poder da Palavra de Deus no seu dia a dia.</string>
+    <string name="label_plan_annual">Plano Anual</string>
+    <string name="label_best_value">Melhor Custo-Benefício</string>
+    <string name="label_plan_monthly">Plano Mensal</string>
+    <string name="label_full_flexibility">Flexibilidade Total</string>
+    <string name="label_plan_lifetime">Vitalício</string>
+    <string name="label_lifetime_subtitle">Pague uma vez, use para sempre</string>
+    <string name="badge_free_trial">7 dias grátis</string>
+    <string name="label_loading_offers">Carregando ofertas...</string>
+    <string name="label_cancel_anytime">Cancele quando quiser na Google Play Store.</string>
+    <string name="feature_notifications">Até 20 notificações personalizadas por dia</string>
+    <string name="feature_categories">Acesso a todas as categorias avançadas</string>
+    <string name="feature_themes">Temas visuais exclusivos</string>
+    <string name="feature_no_ads">Experiência 100% sem anúncios</string>
+    <string name="feature_favorites">Favoritos e histórico ilimitado</string>
+    <string name="feature_share_layouts">Layouts de compartilhamento Premium</string>
+
+    <!-- Limite de favoritos (grátis) -->
+    <string name="title_favorite_limit">Limite de favoritos atingido</string>
+    <string name="desc_favorite_limit">Você atingiu o limite de 20 versículos favoritos do plano gratuito. Assine o Premium para favoritos ilimitados.</string>
+
+    <!-- Desbloqueio de categoria por anúncio -->
+    <string name="title_unlock_category">Categoria bloqueada</string>
+    <string name="desc_unlock_category">Esta categoria é exclusiva para assinantes Premium. Você pode desbloqueá-la por 24 horas assistindo a um anúncio, ou assinar o Premium para acesso permanente.</string>
+    <string name="action_premium_option">Premium</string>
+    <string name="action_watch_ad_24h">Assistir anúncio (24h grátis)</string>
+    <string name="error_ad_unavailable">Nenhum anúncio disponível agora. Tente novamente em instantes.</string>
+
+    <!-- Widget de tela inicial -->
+    <string name="widget_description">Mostra o versículo do dia na tela inicial</string>
+    <string name="widget_no_verse_yet">Abra o app para ver o versículo de hoje</string>
+
+    <!-- Onboarding -->
+    <string name="subtitle_app_tagline">Versículos Bíblicos Diários</string>
+    <string name="title_name_step">Olá! Como te chamamos?</string>
+    <string name="label_your_name_optional">Seu Nome (Opcional)</string>
+    <string name="title_theme_step">Escolha um estilo</string>
+    <string name="title_categories_step">O que você busca?</string>
+    <string name="desc_permission_notifications">Permita as notificações para que possamos enviar versículos inspiradores ao longo do seu dia.</string>
+    <string name="title_tutorial_ready">Tudo pronto!</string>
+    <string name="desc_tutorial_ready">Agora você está pronto para começar sua jornada. Aproveite cada versículo e deixe que eles transformem o seu dia.</string>
 </resources>
