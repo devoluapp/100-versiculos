@@ -10,6 +10,10 @@ captures/
 
 # Local config (contém caminhos e possíveis segredos)
 local.properties
+local.properties.*
+
+# Build output (APK/AAB assinados)
+app/release/
 
 # Keystore
 *.jks
