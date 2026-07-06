@@ -1,14 +1,20 @@
 package blog.robertotavares.cemversiculos.core.notification
 
 import android.content.Context
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 object NotificationHelper {
 
+    // Nome único do WorkManager para o lembrete agendado, substituindo o antigo alarme
+    // exato do AlarmManager (restrito a partir do Android 12/13 sem permissão do usuário).
+    private const val REMINDER_WORK_NAME = "versiculo_reminder_notification"
+
     fun scheduleNext(context: Context, settingsRepository: SettingsRepository) {
-        val scheduler = AlarmSchedulerImpl(context)
-        
         val startTime = settingsRepository.getNotificationStartTime()
         val endTime = settingsRepository.getNotificationEndTime()
         var frequency = settingsRepository.getNotificationFrequency()
@@ -20,12 +26,23 @@ object NotificationHelper {
         }
 
         val nextTimeMs = calculateNextTriggerTime(startTime, endTime, frequency)
-        scheduler.scheduleNextNotification(nextTimeMs)
+        scheduleReminderWork(context, nextTimeMs)
     }
 
     fun scheduleImmediate(context: Context) {
-        val scheduler = AlarmSchedulerImpl(context)
-        scheduler.scheduleNextNotification(System.currentTimeMillis() + 5000)
+        scheduleReminderWork(context, System.currentTimeMillis() + 5000)
+    }
+
+    private fun scheduleReminderWork(context: Context, triggerTimeMs: Long) {
+        val delayMs = (triggerTimeMs - System.currentTimeMillis()).coerceAtLeast(0L)
+        val request = OneTimeWorkRequestBuilder<NotificationWorker>()
+            .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+            .build()
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            REMINDER_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
     }
 
     private fun calculateNextTriggerTime(startTimeStr: String, endTimeStr: String, frequency: Int): Long {

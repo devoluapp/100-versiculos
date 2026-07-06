@@ -42,12 +42,19 @@ class AnalyticsHelper @Inject constructor(
         firebaseAnalytics.logEvent(EVENT_REWARDED_ASSISTIDO, Bundle())
     }
 
+    fun logNotificacaoExibida(referencia: String?) {
+        firebaseAnalytics.logEvent(EVENT_NOTIFICACAO_EXIBIDA, Bundle().apply {
+            referencia?.let { putString(PARAM_REFERENCIA, it) }
+        })
+    }
+
     companion object {
         private const val EVENT_PAYWALL_VISTO = "paywall_visto"
         private const val EVENT_ASSINATURA_INICIADA = "assinatura_iniciada"
         private const val EVENT_CATEGORIA_SELECIONADA = "categoria_selecionada"
         private const val EVENT_VERSICULO_COMPARTILHADO = "versiculo_compartilhado"
         private const val EVENT_REWARDED_ASSISTIDO = "rewarded_assistido"
+        private const val EVENT_NOTIFICACAO_EXIBIDA = "notificacao_exibida"
 
         private const val PARAM_ORIGEM = "origem"
         private const val PARAM_CATEGORIA = "categoria"

@@ -37,7 +37,6 @@
     <string name="dialog_permissions_title">Permissões Necessárias</string>
     <string name="dialog_permissions_message">Para que o %1$s funcione corretamente, precisamos de algumas permissões:</string>
     <string name="dialog_permission_notifications">• Notificações: Para enviar versículos diários.</string>
-    <string name="dialog_permission_alarms">• Alarmes Exatos: Para garantir que cheguem no horário exato.</string>
 
     <!-- Tela Home -->
     <string name="label_premium_active">Premium Ativado</string>

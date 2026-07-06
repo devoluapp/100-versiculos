@@ -31,14 +31,14 @@ val releaseAdmobRewardedId = localProperties.getProperty("admob.rewardedId", adm
 
 android {
     namespace = "blog.robertotavares.cemversiculos"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "blog.robertotavares.cemversiculos"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 4
-        versionName = "1.4"
+        targetSdk = 36
+        versionCode = 5
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -90,40 +90,43 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation(platform("androidx.compose:compose-bom:2024.11.00"))
+    // Nota: core-ktx 1.19.0 / lifecycle 2.11.0 / activity-compose 1.13.0+ e hilt-navigation-compose/hilt-work
+    // 1.4.0 já compilam contra a próxima compileSdk (37) e exigem AGP 9.1+; ficamos na última
+    // versão estável compatível com compileSdk 36 / AGP 8.13.2.
+    implementation("androidx.core:core-ktx:1.18.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation("androidx.activity:activity-compose:1.12.4")
+    implementation(platform("androidx.compose:compose-bom:2026.06.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    // Pinned em 33.10.0 (não 34.x): versões mais novas do BOM trazem play-services-measurement
-    // compilado com uma versão do Kotlin (2.2.x) incompatível com o Kotlin 2.0.21 deste projeto,
-    // quebrando o kspDebugKotlin com "Module was compiled with an incompatible version of Kotlin".
-    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
-    
+    // Precisa ser declarado explicitamente: o BOM atual não traz mais os ícones como
+    // dependência transitiva do material3 (Icons.Default.*/Icons.AutoMirrored.Filled.*).
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+
     // Ads
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation("com.google.android.ump:user-messaging-platform:3.1.0")
 
     // ViewModel Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
     // Room
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.8.4"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
-    
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.52")
-    ksp("com.google.dagger:hilt-android-compiler:2.52")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Hilt (pinned em 2.58: ver comentário no build.gradle.kts raiz sobre requisito de AGP 9 a partir do 2.59)
+    implementation("com.google.dagger:hilt-android:2.58")
+    ksp("com.google.dagger:hilt-android-compiler:2.58")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.8.4")
-    
+    implementation("androidx.navigation:navigation-compose:2.9.8")
+
     // System UI Controller
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
@@ -150,7 +153,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.11.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.06.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

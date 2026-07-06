@@ -41,12 +41,8 @@ class SettingsViewModel @Inject constructor(
     private val _hasNotificationPermission = MutableStateFlow(false)
     val hasNotificationPermission = _hasNotificationPermission.asStateFlow()
 
-    private val _canScheduleExactAlarms = MutableStateFlow(false)
-    val canScheduleExactAlarms = _canScheduleExactAlarms.asStateFlow()
-
     fun checkPermissions(context: Context) {
         _hasNotificationPermission.value = PermissionManager.hasNotificationPermission(context)
-        _canScheduleExactAlarms.value = PermissionManager.canScheduleExactAlarms(context)
     }
 
     fun updateUserName(name: String) {
@@ -83,8 +79,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun triggerImmediateNotification(context: Context) {
-        if (PermissionManager.hasNotificationPermission(context) &&
-            PermissionManager.canScheduleExactAlarms(context)) {
+        if (PermissionManager.hasNotificationPermission(context)) {
             NotificationHelper.scheduleImmediate(context)
         }
     }

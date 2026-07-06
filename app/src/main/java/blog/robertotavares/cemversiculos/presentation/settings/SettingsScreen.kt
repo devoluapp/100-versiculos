@@ -59,7 +59,6 @@ fun SettingsScreen(
     val frequency by viewModel.notificationFrequency.collectAsState()
     val selectedTheme by viewModel.selectedTheme.collectAsState()
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
-    val canScheduleExactAlarms by viewModel.canScheduleExactAlarms.collectAsState()
     val isPremium by homeViewModel.isPremium.collectAsState()
     val categoryUnlocksVersion by viewModel.categoryUnlocksVersion.collectAsState()
 
@@ -198,7 +197,7 @@ fun SettingsScreen(
 
             // Seção: Notificações
             SettingsSection(title = stringResource(R.string.section_reminders), icon = Icons.Default.Notifications) {
-                if (!hasNotificationPermission || !canScheduleExactAlarms) {
+                if (!hasNotificationPermission) {
                     Button(
                         onClick = { showPermissionModal = true },
                         modifier = Modifier.fillMaxWidth(),
@@ -336,11 +335,7 @@ fun SettingsScreen(
                     PermissionManager.openAppSettings(context)
                 }
             },
-            onGrantAlarms = {
-                PermissionManager.openExactAlarmSettings(context)
-            },
-            hasNotificationPermission = hasNotificationPermission,
-            canScheduleExactAlarms = canScheduleExactAlarms
+            hasNotificationPermission = hasNotificationPermission
         )
     }
 
@@ -413,9 +408,7 @@ fun PermissionStatusItem(title: String, isGranted: Boolean, onAction: () -> Unit
 fun PermissionDialog(
     onDismiss: () -> Unit,
     onGrantNotifications: () -> Unit,
-    onGrantAlarms: () -> Unit,
-    hasNotificationPermission: Boolean,
-    canScheduleExactAlarms: Boolean
+    hasNotificationPermission: Boolean
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -428,15 +421,11 @@ fun PermissionDialog(
                 if (!hasNotificationPermission) {
                     Text(stringResource(R.string.dialog_permission_notifications))
                 }
-                if (!canScheduleExactAlarms) {
-                    Text(stringResource(R.string.dialog_permission_alarms))
-                }
             }
         },
         confirmButton = {
             Button(onClick = {
                 if (!hasNotificationPermission) onGrantNotifications()
-                else if (!canScheduleExactAlarms) onGrantAlarms()
                 else onDismiss()
             }) {
                 Text(stringResource(R.string.action_configure))

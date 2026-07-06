@@ -4,7 +4,7 @@ Aplicativo Android nativo de versículos bíblicos diários, organizado por tema
 
 - **Package:** `blog.robertotavares.cemversiculos`
 - **Versão atual:** 1.2 (versionCode 3)
-- **minSdk:** 26 (Android 8.0) · **target/compileSdk:** 35 (Android 15)
+- **minSdk:** 26 (Android 8.0) · **target/compileSdk:** 36 (Android 16)
 - **Idioma:** Português (Brasil)
 
 ## O que o app faz
@@ -18,7 +18,7 @@ O usuário escolhe uma categoria (ex.: Fé, Ansiedade, Gratidão) e navega por v
 - **11 categorias de versículos** (JSON em `assets/`, ~100 versículos cada, com referência, testamento e tags): Fé, Gratidão, Luto, Medo, Raiva, Oração, Perdão, Solidão, Tristeza, Ansiedade, Propósito.
 - **Favoritos** (categoria virtual "Favoritas"), livre para todos com limite de 20 itens no plano gratuito.
 - **Compartilhamento** como imagem (captura do cartão via FileProvider) ou texto.
-- **Notificações agendadas** com alarmes exatos (`SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM`), ações "Próximo" e "Compartilhar" direto na notificação, e reagendamento após reboot (`BootReceiver`).
+- **Notificações agendadas** via WorkManager (agendamento inexato, sem depender da permissão restrita `SCHEDULE_EXACT_ALARM`), ações "Próximo" e "Compartilhar" direto na notificação, e reagendamento após reboot (`BootReceiver`).
 - **4 temas visuais** com variante clara/escura: Areia (padrão), Natureza, Oceano, Crepúsculo.
 - **Tutorial** em modal na primeira utilização.
 - **Widget de tela inicial** (Jetpack Glance) com o versículo do dia da categoria selecionada, cores seguindo o tema ativo; toque abre a `MainActivity`. Atualizado 1x/dia via WorkManager.
