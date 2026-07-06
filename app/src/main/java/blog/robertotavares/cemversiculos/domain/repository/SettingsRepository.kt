@@ -40,6 +40,11 @@ interface SettingsRepository {
     fun saveLastUsageDate(date: String)
     fun getLastReviewRequestTimestamp(): Long
     fun saveLastReviewRequestTimestamp(timestamp: Long)
+
+    fun getStreakDays(): Int
+    fun saveStreakDays(count: Int)
+    fun getLastStreakDate(): String?
+    fun saveLastStreakDate(date: String)
 }
 
 data class WidgetVerse(val text: String, val reference: String?, val contentId: Long = 0L)

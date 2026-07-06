@@ -45,6 +45,7 @@ class HomeViewModel @Inject constructor(
 
     val currentTheme = settingsRepository.getThemeFlow()
     val isPremium = settingsRepository.getPremiumFlow()
+    val streakDays: Int = settingsRepository.getStreakDays()
 
     val bannerAdUnitId: String get() = adManager.bannerAdUnitId
 

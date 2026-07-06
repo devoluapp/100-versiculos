@@ -114,4 +114,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun saveLastReviewRequestTimestamp(timestamp: Long) =
         preferenceManager.saveLastReviewRequestTimestamp(timestamp)
+
+    override fun getStreakDays(): Int = preferenceManager.getStreakDays()
+
+    override fun saveStreakDays(count: Int) = preferenceManager.saveStreakDays(count)
+
+    override fun getLastStreakDate(): String? = preferenceManager.getLastStreakDate()
+
+    override fun saveLastStreakDate(date: String) = preferenceManager.saveLastStreakDate(date)
 }

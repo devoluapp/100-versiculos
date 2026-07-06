@@ -159,6 +159,10 @@ fun HomeScreen(
                     )
                 }
 
+                if (viewModel.streakDays > 0) {
+                    StreakChip(days = viewModel.streakDays)
+                }
+
                 IconButton(
                     onClick = onNavigateToSettings,
                     modifier = Modifier
@@ -214,7 +218,7 @@ fun HomeScreen(
                                     )
                                     val canvas = android.graphics.Canvas(bitmap)
                                     canvas.drawPicture(picture)
-                                    ShareUtils.shareBitmap(context, bitmap)
+                                    ShareUtils.shareBitmap(context, bitmap, isPremium)
                                 } else {
                                     val shareText = if (content.reference != null) {
                                         "\"${content.text}\"\n\n${content.reference}"
@@ -317,6 +321,24 @@ fun HomeScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun StreakChip(days: Int, modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.label_streak_days, days),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 

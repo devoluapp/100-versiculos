@@ -42,6 +42,8 @@
     <!-- Tela Home -->
     <string name="label_premium_active">Premium Ativado</string>
     <string name="label_download_play_store">Baixe na Play Store</string>
+    <string name="watermark_download_free">Baixe grátis na Play Store</string>
+    <string name="label_streak_days">🙌 %1$d dias com a Palavra</string>
     <string name="empty_favorites">Você ainda não tem versículos favoritos.</string>
     <string name="empty_category">Não há versículos para esta categoria.</string>
     <string name="tutorial_title_welcome">Bem-vindo!</string>

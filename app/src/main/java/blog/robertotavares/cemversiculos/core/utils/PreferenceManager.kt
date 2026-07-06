@@ -129,4 +129,18 @@ class PreferenceManager @Inject constructor(
     fun getLastReviewRequestTimestamp(): Long {
         return sharedPreferences.getLong("last_review_request_timestamp", 0L)
     }
+
+    fun saveStreakDays(count: Int) {
+        sharedPreferences.edit { putInt("streak_days_count", count) }
+    }
+
+    fun getStreakDays(): Int {
+        return sharedPreferences.getInt("streak_days_count", 0)
+    }
+
+    fun saveLastStreakDate(date: String) {
+        sharedPreferences.edit { putString("last_streak_date", date) }
+    }
+
+    fun getLastStreakDate(): String? = sharedPreferences.getString("last_streak_date", null)
 }
