@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import blog.robertotavares.cemversiculos.BuildConfig
+import blog.robertotavares.cemversiculos.core.analytics.AnalyticsHelper
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -27,7 +28,8 @@ import javax.inject.Singleton
 @Singleton
 class AdManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val analyticsHelper: AnalyticsHelper
 ) {
 
     private val consentInformation: ConsentInformation =
@@ -201,7 +203,10 @@ class AdManager @Inject constructor(
             }
         }
 
-        ad.show(activity, OnUserEarnedRewardListener { onRewardEarned() })
+        ad.show(activity, OnUserEarnedRewardListener {
+            analyticsHelper.logRewardedAssistido()
+            onRewardEarned()
+        })
     }
 
     companion object {

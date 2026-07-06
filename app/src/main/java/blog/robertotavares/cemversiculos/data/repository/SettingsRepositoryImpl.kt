@@ -90,11 +90,28 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override fun saveWidgetVerse(verse: WidgetVerse) {
-        preferenceManager.saveWidgetVerse(verse.text, verse.reference)
+        preferenceManager.saveWidgetVerse(verse.text, verse.reference, verse.contentId)
     }
 
     override fun getWidgetVerse(): WidgetVerse? {
         val text = preferenceManager.getWidgetVerseText() ?: return null
-        return WidgetVerse(text, preferenceManager.getWidgetVerseReference())
+        return WidgetVerse(
+            text,
+            preferenceManager.getWidgetVerseReference(),
+            preferenceManager.getWidgetVerseContentId()
+        )
     }
+
+    override fun getUsageDaysCount(): Int = preferenceManager.getUsageDaysCount()
+
+    override fun saveUsageDaysCount(count: Int) = preferenceManager.saveUsageDaysCount(count)
+
+    override fun getLastUsageDate(): String? = preferenceManager.getLastUsageDate()
+
+    override fun saveLastUsageDate(date: String) = preferenceManager.saveLastUsageDate(date)
+
+    override fun getLastReviewRequestTimestamp(): Long = preferenceManager.getLastReviewRequestTimestamp()
+
+    override fun saveLastReviewRequestTimestamp(timestamp: Long) =
+        preferenceManager.saveLastReviewRequestTimestamp(timestamp)
 }

@@ -33,6 +33,13 @@ interface SettingsRepository {
 
     fun saveWidgetVerse(verse: WidgetVerse)
     fun getWidgetVerse(): WidgetVerse?
+
+    fun getUsageDaysCount(): Int
+    fun saveUsageDaysCount(count: Int)
+    fun getLastUsageDate(): String?
+    fun saveLastUsageDate(date: String)
+    fun getLastReviewRequestTimestamp(): Long
+    fun saveLastReviewRequestTimestamp(timestamp: Long)
 }
 
-data class WidgetVerse(val text: String, val reference: String?)
+data class WidgetVerse(val text: String, val reference: String?, val contentId: Long = 0L)

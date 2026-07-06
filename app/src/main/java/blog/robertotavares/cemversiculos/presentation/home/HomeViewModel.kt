@@ -4,6 +4,8 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blog.robertotavares.cemversiculos.core.ads.AdManager
+import blog.robertotavares.cemversiculos.core.analytics.AnalyticsHelper
+import blog.robertotavares.cemversiculos.core.review.InAppReviewManager
 import blog.robertotavares.cemversiculos.data.local.ContentItemEntity
 import blog.robertotavares.cemversiculos.domain.repository.ContentRepository
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
@@ -21,7 +23,9 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val contentRepository: ContentRepository,
     private val settingsRepository: SettingsRepository,
-    private val adManager: AdManager
+    private val adManager: AdManager,
+    private val analyticsHelper: AnalyticsHelper,
+    private val inAppReviewManager: InAppReviewManager
 ) : ViewModel() {
 
     private val _selectedCategory = MutableStateFlow(settingsRepository.getSelectedCategory())
@@ -48,7 +52,8 @@ class HomeViewModel @Inject constructor(
     private val _interstitialEvent = Channel<Unit>(Channel.CONFLATED)
     val interstitialEvent = _interstitialEvent.receiveAsFlow()
 
-    private var favoriteCount = 0
+    private val _favoriteCount = MutableStateFlow(0)
+    val favoriteCount = _favoriteCount.asStateFlow()
     private val _showFavoriteLimitDialog = MutableStateFlow(false)
     val showFavoriteLimitDialog = _showFavoriteLimitDialog.asStateFlow()
 
@@ -60,7 +65,7 @@ class HomeViewModel @Inject constructor(
         }
         viewModelScope.launch {
             contentRepository.getFavoriteContents().collectLatest { favorites ->
-                favoriteCount = favorites.size
+                _favoriteCount.value = favorites.size
             }
         }
     }
@@ -117,12 +122,13 @@ class HomeViewModel @Inject constructor(
         if (_selectedCategory.value != category) {
             _selectedCategory.value = category
             settingsRepository.saveSelectedCategory(category)
+            analyticsHelper.logCategoriaSelecionada(category)
         }
     }
-    
+
     fun toggleFavorite(content: ContentItemEntity) {
         val isAddingFavorite = !content.isFavorite
-        if (isAddingFavorite && !isPremium.value && favoriteCount >= FREE_FAVORITE_LIMIT) {
+        if (isAddingFavorite && !isPremium.value && _favoriteCount.value >= FREE_FAVORITE_LIMIT) {
             _showFavoriteLimitDialog.value = true
             return
         }
@@ -132,6 +138,14 @@ class HomeViewModel @Inject constructor(
                 if (it.id == content.id) it.copy(isFavorite = !it.isFavorite) else it
             }
         }
+    }
+
+    fun logVerseShared(content: ContentItemEntity) {
+        analyticsHelper.logVersiculoCompartilhado(content.reference)
+    }
+
+    fun maybeRequestReview(activity: Activity) {
+        inAppReviewManager.maybeRequestReview(activity, _favoriteCount.value)
     }
 
     fun dismissFavoriteLimitDialog() {

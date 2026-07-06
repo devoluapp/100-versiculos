@@ -65,6 +65,7 @@ fun HomeScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
     val showFavoriteLimitDialog by viewModel.showFavoriteLimitDialog.collectAsState()
+    val favoriteCount by viewModel.favoriteCount.collectAsState()
 
     var showTutorial by remember { mutableStateOf(!viewModel.isOnboardingCompleted()) }
 
@@ -114,6 +115,14 @@ fun HomeScreen(
             (context as? Activity)?.let { activity ->
                 viewModel.showInterstitial(activity)
             }
+        }
+    }
+
+    // Avaliação in-app: verifica elegibilidade (3º dia de uso) ao abrir a tela e
+    // novamente sempre que a contagem de favoritos mudar (5º favorito).
+    LaunchedEffect(favoriteCount) {
+        (context as? Activity)?.let { activity ->
+            viewModel.maybeRequestReview(activity)
         }
     }
 
@@ -196,6 +205,7 @@ fun HomeScreen(
                             var captureSize by remember { mutableStateOf(IntSize.Zero) }
                             
                             val handleShare = {
+                                viewModel.logVerseShared(content)
                                 if (picture.width > 0 && picture.height > 0) {
                                     val bitmap = Bitmap.createBitmap(
                                         captureSize.width,

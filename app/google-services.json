@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "950811437242",
+    "project_id": "versiculos-do-dia-c7b47",
+    "storage_bucket": "versiculos-do-dia-c7b47.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:950811437242:android:4aecee5ac5ae5dd18dfa83",
+        "android_client_info": {
+          "package_name": "blog.robertotavares.cemversiculos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUPltt9pnjl7Q5jgou4DKfp0wT89OvuJo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

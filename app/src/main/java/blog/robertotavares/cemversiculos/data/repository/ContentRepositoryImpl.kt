@@ -34,6 +34,13 @@ class ContentRepositoryImpl @Inject constructor(
         return contentDao.getNextContentToDisplay(category)
     }
 
+    override suspend fun getOrderedContents(category: String): List<ContentItemEntity> {
+        if (contentDao.getContentCountByCategory(category) == 0) {
+            seedInitialData(category)
+        }
+        return contentDao.getOrderedContentsByCategory(category)
+    }
+
     override suspend fun toggleFavorite(content: ContentItemEntity) {
         contentDao.update(content.copy(isFavorite = !content.isFavorite))
     }

@@ -6,6 +6,8 @@ plugins {
     id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 // IDs de teste oficiais do Google (https://developers.google.com/admob/android/test-ads)
@@ -96,6 +98,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    // Pinned em 33.10.0 (não 34.x): versões mais novas do BOM trazem play-services-measurement
+    // compilado com uma versão do Kotlin (2.2.x) incompatível com o Kotlin 2.0.21 deste projeto,
+    // quebrando o kspDebugKotlin com "Module was compiled with an incompatible version of Kotlin".
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
     
     // Ads
     implementation("com.google.android.gms:play-services-ads:23.6.0")
@@ -132,6 +138,14 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.11.2")
     implementation("androidx.hilt:hilt-work:1.3.0")
     ksp("androidx.hilt:hilt-compiler:1.3.0")
+
+    //Firebase
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
+
+    // In-App Review
+    implementation("com.google.android.play:review:2.0.2")
+    implementation("com.google.android.play:review-ktx:2.0.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

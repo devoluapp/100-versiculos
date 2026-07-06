@@ -9,6 +9,7 @@ import blog.robertotavares.cemversiculos.data.repository.ContentRepositoryImpl
 import blog.robertotavares.cemversiculos.data.repository.SettingsRepositoryImpl
 import blog.robertotavares.cemversiculos.domain.repository.ContentRepository
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
+import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,6 +20,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAnalytics(@ApplicationContext context: Context): FirebaseAnalytics {
+        return FirebaseAnalytics.getInstance(context)
+    }
 
     @Provides
     @Singleton

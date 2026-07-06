@@ -38,6 +38,9 @@ interface ContentDao {
     @Query("SELECT COUNT(*) FROM content_items WHERE authorOrCategory = :category")
     suspend fun getContentCountByCategory(category: String): Int
 
+    @Query("SELECT * FROM content_items WHERE authorOrCategory = :category ORDER BY id ASC")
+    suspend fun getOrderedContentsByCategory(category: String): List<ContentItemEntity>
+
     @Query("SELECT * FROM content_items ORDER BY shownCount ASC, RANDOM() LIMIT 1")
     suspend fun getNextRandomContent(): ContentItemEntity?
 

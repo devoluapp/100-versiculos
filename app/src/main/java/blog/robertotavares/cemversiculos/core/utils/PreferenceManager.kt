@@ -94,14 +94,39 @@ class PreferenceManager @Inject constructor(
         return sharedPreferences.getLong("category_unlock_$category", 0L)
     }
 
-    fun saveWidgetVerse(text: String, reference: String?) {
+    fun saveWidgetVerse(text: String, reference: String?, contentId: Long) {
         sharedPreferences.edit {
             putString("widget_verse_text", text)
             putString("widget_verse_reference", reference)
+            putLong("widget_verse_content_id", contentId)
         }
     }
 
     fun getWidgetVerseText(): String? = sharedPreferences.getString("widget_verse_text", null)
 
     fun getWidgetVerseReference(): String? = sharedPreferences.getString("widget_verse_reference", null)
+
+    fun getWidgetVerseContentId(): Long = sharedPreferences.getLong("widget_verse_content_id", 0L)
+
+    fun saveUsageDaysCount(count: Int) {
+        sharedPreferences.edit { putInt("usage_days_count", count) }
+    }
+
+    fun getUsageDaysCount(): Int {
+        return sharedPreferences.getInt("usage_days_count", 0)
+    }
+
+    fun saveLastUsageDate(date: String) {
+        sharedPreferences.edit { putString("last_usage_date", date) }
+    }
+
+    fun getLastUsageDate(): String? = sharedPreferences.getString("last_usage_date", null)
+
+    fun saveLastReviewRequestTimestamp(timestamp: Long) {
+        sharedPreferences.edit { putLong("last_review_request_timestamp", timestamp) }
+    }
+
+    fun getLastReviewRequestTimestamp(): Long {
+        return sharedPreferences.getLong("last_review_request_timestamp", 0L)
+    }
 }
