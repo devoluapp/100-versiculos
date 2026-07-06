@@ -29,7 +29,7 @@ class VersiculoWidgetWorker @AssistedInject constructor(
             val category = settingsRepository.getSelectedCategory()
             val content = contentRepository.getNextContentToDisplay(category)
             if (content != null) {
-                settingsRepository.saveWidgetVerse(WidgetVerse(content.text, content.reference))
+                settingsRepository.saveWidgetVerse(WidgetVerse(content.text, content.reference, content.id))
                 contentRepository.markAsShown(content)
                 VersiculoWidget().updateAll(applicationContext)
             }

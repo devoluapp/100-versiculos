@@ -91,6 +91,10 @@
     <!-- Widget de tela inicial -->
     <string name="widget_description">Mostra o versículo do dia na tela inicial</string>
     <string name="widget_no_verse_yet">Abra o app para ver o versículo de hoje</string>
+    <string name="section_widget">Widget</string>
+    <string name="desc_add_widget">Adicione o versículo do dia à sua tela inicial.</string>
+    <string name="action_add_widget">Adicionar à tela inicial</string>
+    <string name="widget_manual_instructions">Se não abrir automaticamente: toque e segure uma área vazia da tela inicial, escolha \"Widgets\" e procure por %1$s.</string>
 
     <!-- Onboarding -->
     <string name="subtitle_app_tagline">Versículos Bíblicos Diários</string>

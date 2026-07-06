@@ -3,6 +3,8 @@ package blog.robertotavares.cemversiculos.presentation.settings
 import android.Manifest
 import android.app.Activity
 import android.app.TimePickerDialog
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
+import blog.robertotavares.cemversiculos.core.widget.VersiculoWidgetReceiver
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
 import java.util.Locale
 
@@ -278,7 +281,47 @@ fun SettingsScreen(
                     }
                 }
             }
-            
+
+            // Seção: Widget
+            SettingsSection(title = stringResource(R.string.section_widget), icon = Icons.Default.Home) {
+                val appName = stringResource(R.string.app_name)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        stringResource(R.string.desc_add_widget),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Button(
+                        onClick = {
+                            val appWidgetManager = AppWidgetManager.getInstance(context)
+                            val provider = ComponentName(context, VersiculoWidgetReceiver::class.java)
+                            val canPin = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                                appWidgetManager.isRequestPinAppWidgetSupported
+                            if (canPin) {
+                                appWidgetManager.requestPinAppWidget(provider, null, null)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.widget_manual_instructions, appName),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(Icons.Default.Home, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.action_add_widget))
+                    }
+                    Text(
+                        stringResource(R.string.widget_manual_instructions, appName),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
