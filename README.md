@@ -3,7 +3,7 @@
 Aplicativo Android nativo de versículos bíblicos diários, organizado por temas emocionais/espirituais, com notificações agendadas, favoritos, compartilhamento como imagem e modelo freemium (assinatura Premium via Google Play Billing).
 
 - **Package:** `blog.robertotavares.cemversiculos`
-- **Versão atual:** 1.2 (versionCode 3)
+- **Versão atual:** 1.6 (versionCode 6)
 - **minSdk:** 26 (Android 8.0) · **target/compileSdk:** 36 (Android 16)
 - **Idioma:** Português (Brasil)
 
@@ -15,13 +15,16 @@ O usuário escolhe uma categoria (ex.: Fé, Ansiedade, Gratidão) e navega por v
 
 - **Onboarding** inicial com configuração de preferências.
 - **Home:** cartões de versículos com swipe, exibição inteligente (prioriza versículos nunca mostrados, depois os mostrados há mais tempo — `lastShownTimestamp`/`shownCount`).
-- **11 categorias de versículos** (JSON em `assets/`, ~100 versículos cada, com referência, testamento e tags): Fé, Gratidão, Luto, Medo, Raiva, Oração, Perdão, Solidão, Tristeza, Ansiedade, Propósito.
-- **Favoritos** (categoria virtual "Favoritas"), livre para todos com limite de 20 itens no plano gratuito.
-- **Compartilhamento** como imagem (captura do cartão via FileProvider) ou texto.
-- **Notificações agendadas** via WorkManager (agendamento inexato, sem depender da permissão restrita `SCHEDULE_EXACT_ALARM`), ações "Próximo" e "Compartilhar" direto na notificação, e reagendamento após reboot (`BootReceiver`).
-- **4 temas visuais** com variante clara/escura: Areia (padrão), Natureza, Oceano, Crepúsculo.
+- **11 categorias de versículos** (JSON em `assets/`, ~100 versículos cada, com referência, testamento e tags): Fé, Gratidão, Luto, Medo, Raiva, Oração, Perdão, Solidão, Tristeza, Ansiedade, Propósito — mais a categoria virtual "Favoritas".
+- **Favoritos**, livre para todos com limite de 20 itens no plano gratuito. A troca de categoria/carregamento de conteúdo usa `flatMapLatest` por categoria (`HomeViewModel.kt`) para evitar que uma carga antiga (ex.: semeadura de uma categoria comum) sobrescreva a lista de Favoritas depois de uma troca rápida de categoria.
+- **Compartilhamento** como imagem (captura do cartão via FileProvider) ou texto. O convite para baixar o app ("Baixe grátis na Play Store...") vai como **texto real** na mensagem de compartilhamento (link clicável), não desenhado na imagem — a imagem carrega só uma marca d'água discreta com o nome do app (`ShareUtils.kt`).
+- **Notificações agendadas** via WorkManager (agendamento inexato, sem depender da permissão restrita `SCHEDULE_EXACT_ALARM`), com ações "Próximo", "Compartilhar" e "Excluir" direto na notificação (a notificação não some sozinha ao ser tocada, para dar tempo de terminar a leitura), e reagendamento após reboot (`BootReceiver`).
+- **4 temas visuais** com variante clara/escura: Areia (padrão), Natureza, Oceano, Crepúsculo (exclusivo Premium).
+- **Streak de dias consecutivos:** chip "🔥 X dias com a Palavra" na Home, exibido só a partir do 3º dia consecutivo de uso (`HomeViewModel.showStreakBadge`) para não aparecer trivialmente no dia 1 de uma instalação nova.
 - **Tutorial** em modal na primeira utilização.
-- **Widget de tela inicial** (Jetpack Glance) com o versículo do dia da categoria selecionada, cores seguindo o tema ativo; toque abre a `MainActivity`. Atualizado 1x/dia via WorkManager.
+- **Widget de tela inicial** (Jetpack Glance) com o versículo do dia da categoria selecionada, cores seguindo o tema ativo (claro/escuro), fonte que se adapta ao tamanho do widget redimensionado pelo usuário, e amostra estática na tela de adicionar widget do sistema; toque abre a `MainActivity` já no versículo exibido. Atualizado 1x/dia via WorkManager.
+- **Analytics, Crashlytics e avaliação in-app:** eventos de uso via Firebase Analytics (categoria selecionada, versículo compartilhado, paywall visto, assinatura iniciada, rewarded assistido, notificação exibida — `AnalyticsHelper.kt`), relatórios de falha via Firebase Crashlytics, e pedido de avaliação via Play In-App Review API a partir do 3º dia de uso ou do 5º favorito, respeitando um intervalo mínimo de 30 dias entre pedidos (`InAppReviewManager.kt`).
+- **Política de Privacidade e Termos de Uso** acessíveis em Configurações → Sobre, abrindo a URL configurada em `strings.xml` (`privacy_policy_url`/`terms_of_use_url`).
 
 ### Modelo freemium (estado atual)
 
@@ -65,9 +68,11 @@ app/src/main/java/blog/robertotavares/cemversiculos/
 ├── MainActivity.kt               # Single-activity, NavHost (Onboarding/Home/Settings/Paywall)
 ├── di/AppModule.kt               # Módulo Hilt (Room, repositórios, billing…)
 ├── core/
-│   ├── ads/AdManager.kt           # AdMob + UMP (consentimento, banner adaptativo, interstitial)
+│   ├── ads/AdManager.kt           # AdMob + UMP (consentimento, banner adaptativo, interstitial, rewarded)
+│   ├── analytics/AnalyticsHelper.kt # Eventos Firebase Analytics
 │   ├── billing/BillingManager.kt # Google Play Billing (assinaturas, acknowledge, restore)
-│   ├── notification/             # AlarmScheduler, NotificationReceiver, BootReceiver, Helper
+│   ├── notification/              # NotificationDisplayer/Receiver/Helper/Worker, BootReceiver
+│   ├── review/InAppReviewManager.kt # Play In-App Review API (elegibilidade por dias de uso/favoritos)
 │   ├── utils/                    # ShareUtils (imagem/texto), PreferenceManager, PermissionManager
 │   └── widget/                   # VersiculoWidget (Glance), Receiver, Worker (WorkManager, 1x/dia)
 ├── data/
@@ -89,15 +94,18 @@ app/src/main/java/blog/robertotavares/cemversiculos/
 
 | Tecnologia | Versão |
 |---|---|
-| Kotlin | 2.0.21 (KSP) |
-| AGP | 8.7.3 · Gradle 9 |
-| Jetpack Compose | BOM 2024.11.00, Material 3 |
-| Navigation Compose | 2.8.4 |
-| Room | 2.6.1 |
-| Hilt | 2.52 |
+| Kotlin | 2.2.21 (KSP 2.2.21-2.0.5) |
+| AGP | 8.13.2 · Gradle 8.14.5 |
+| Jetpack Compose | BOM 2026.06.01, Material 3 |
+| Navigation Compose | 2.9.8 |
+| Room | 2.8.4 |
+| Hilt | 2.58 (pinned — Dagger 2.59+ exige AGP 9/Gradle 9.1+, fora de escopo por ora) |
+| Hilt Navigation Compose | 1.3.0 |
 | Play Billing | 7.1.1 |
-| Play Services Ads (AdMob) | 23.6.0 · banner adaptativo + interstitial |
+| Play Services Ads (AdMob) | 23.6.0 · banner adaptativo + interstitial + rewarded |
 | User Messaging Platform (UMP) | 3.1.0 (consentimento AdMob) |
+| Firebase BOM | 34.15.0 (Analytics + Crashlytics) |
+| Play In-App Review | 2.0.2 (+ review-ktx) |
 | Glance App Widget | 1.1.1 |
 | WorkManager | 2.11.2 |
 | Hilt Work | 1.3.0 |
@@ -113,16 +121,19 @@ app/src/main/java/blog/robertotavares/cemversiculos/
 ./gradlew bundleRelease
 ```
 
-Requisitos: JDK 17, Android SDK 35. Abra no Android Studio (Ladybug+) e sincronize o Gradle.
+Requisitos: JDK 17, Android SDK 36. Abra no Android Studio (Ladybug+) e sincronize o Gradle.
 
 ## Documentos do projeto
 
-- `RELATORIO-MERCADO-ASO.md` — análise de mercado, SWOT, monetização, guia de publicação na Play Store e ASO.
-- `PLANO-MELHORIAS.md` — plano de melhorias executável via Claude Code + Android Studio.
-- `versiculo_do_dia_privacy_policy.html` — política de privacidade.
+- `docs/GUIA-PUBLICACAO-PLAY-STORE.md` — guia passo a passo de tudo que precisa ser configurado no Google Play Console para publicar (App content, Data safety, monetização, ficha da loja, teste fechado), escrito a partir do comportamento real do app.
+- `RELATORIO-MERCADO-ASO.md` — análise de mercado, SWOT, monetização e ASO (alguns números técnicos citados lá, como versão de Billing/target API, já foram superados pelo estado atual do app — ver seções acima).
+- `PLANO-MELHORIAS.md` — plano de melhorias executável via Claude Code + Android Studio (fases 0–6 já concluídas).
+- `versiculo_do_dia_privacy_policy.html` — política de privacidade (linkada em Configurações → Sobre; precisa estar hospedada em URL pública — ver guia de publicação).
+- `termos_de_uso.html` — termos de uso, incluindo aviso de que o conteúdo é devocional/inspiracional e não substitui aconselhamento profissional (linkado em Configurações → Sobre).
 
 ## Observações conhecidas
 
 - Nomes de categoria (ex.: "Gratidão") e de tema (ex.: "Crepúsculo") continuam como literais Kotlin em vez de string resources, pois funcionam como chaves de dados comparadas com o campo `categoria` dos JSONs, `SharedPreferences` e ViewModels/Repository — extrair para `strings.xml` quebraria esse casamento de valores caso o app seja localizado no futuro.
 - Arquivos de afirmações (paz, foco, energia, gratidão, prosperidade, autoestima) foram removidos de `data/repository/categories/` por não serem referenciados em lugar nenhum; ficaram arquivados em `docs/afirmacoes-backup/` para eventual reaproveitamento futuro.
 - `VersiculoWidgetWorker` chama `contentRepository.markAsShown()` no versículo exibido no widget, para manter a mesma lógica de rotação ("nunca repetir") usada na Home — abrir o app pode mostrar um versículo diferente do widget se a categoria selecionada mudar entre a última atualização do widget e a abertura do app.
+- `privacy_policy_url`/`terms_of_use_url` em `strings.xml` ainda apontam para um domínio placeholder (`SEU-DOMINIO-AQUI.com`) — trocar pela URL real antes de publicar (ver `docs/GUIA-PUBLICACAO-PLAY-STORE.md`, seção 2).

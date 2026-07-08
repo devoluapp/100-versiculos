@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Cores da amostra estática usada em res/layout/widget_preview.xml, exibida na tela do sistema
+    de adicionar widget (antes de o usuário tocar em "Adicionar"). Usa a paleta do tema padrão do
+    app (Areia); os valores aqui são o modo claro. Veja values-night/widget_preview_colors.xml
+    para o par escuro - o sistema escolhe automaticamente com base no tema do aparelho.
+-->
+<resources>
+    <color name="widget_preview_background">#F8F7F6</color>
+    <color name="widget_preview_primary">#E6C04C</color>
+    <color name="widget_preview_primary_soft">#24E6C04C</color>
+    <color name="widget_preview_text">#0F172A</color>
+    <color name="widget_preview_text_muted">#990F172A</color>
+</resources>

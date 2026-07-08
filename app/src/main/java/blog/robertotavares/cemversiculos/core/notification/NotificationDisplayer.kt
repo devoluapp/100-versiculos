@@ -75,10 +75,20 @@ class NotificationDisplayer @Inject constructor(
 
         // Intent para o botão Próxima
         val nextIntent = Intent(context, NotificationReceiver::class.java).apply {
-            action = "ACTION_NEXT"
+            action = NotificationReceiver.ACTION_NEXT
         }
         val nextPi = PendingIntent.getBroadcast(context, 2, nextIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
+        // Intent para o botão Excluir
+        val dismissIntent = Intent(context, NotificationReceiver::class.java).apply {
+            action = NotificationReceiver.ACTION_DISMISS
+        }
+        val dismissPi = PendingIntent.getBroadcast(context, 3, dismissIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        // Sem setAutoCancel: a notificação não deve sumir sozinha ao ser tocada (nem pelo
+        // conteúdo, nem pelos botões), pois isso impedia o usuário de voltar à bandeja para
+        // terminar de ler o versículo. A saída explícita agora é o botão Excluir (ou o gesto
+        // de arrastar do sistema).
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_bible)
             .setContentTitle(personalizedTitle)
@@ -88,7 +98,7 @@ class NotificationDisplayer @Inject constructor(
             .setContentIntent(contentPi)
             .addAction(android.R.drawable.ic_menu_share, "Compartilhar", shareAppPi)
             .addAction(android.R.drawable.ic_media_next, "Próximo", nextPi)
-            .setAutoCancel(true)
+            .addAction(android.R.drawable.ic_menu_delete, "Excluir", dismissPi)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -118,7 +128,7 @@ class NotificationDisplayer @Inject constructor(
     }
 
     companion object {
-        private const val NOTIFICATION_ID = 1001
+        const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "MIND_CHANNEL_ID"
 
         private val PRE_PHRASES = listOf(

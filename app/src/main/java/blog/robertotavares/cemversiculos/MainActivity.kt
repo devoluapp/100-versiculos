@@ -21,6 +21,8 @@ import blog.robertotavares.cemversiculos.presentation.onboarding.OnboardingScree
 import blog.robertotavares.cemversiculos.presentation.settings.SettingsScreen
 import blog.robertotavares.cemversiculos.presentation.paywall.PaywallScreen
 import blog.robertotavares.cemversiculos.presentation.theme.BaseTheme
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -78,24 +80,28 @@ fun MainApp(homeViewModel: HomeViewModel) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 composable(Screen.Onboarding.route) {
-                    OnboardingScreen(onFinish = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    OnboardingScreen(
+                        homeViewModel = homeViewModel,
+                        onFinish = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Onboarding.route) { inclusive = true }
+                            }
                         }
-                    })
+                    )
                 }
-                composable(Screen.Home.route) { 
+                composable(Screen.Home.route) {
                     HomeScreen(
                         viewModel = homeViewModel,
                         onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                         onNavigateToPaywall = { navController.navigate(Screen.Paywall.route) }
-                    ) 
+                    )
                 }
-                composable(Screen.Settings.route) { 
+                composable(Screen.Settings.route) {
                     SettingsScreen(
+                        homeViewModel = homeViewModel,
                         onBack = { navController.popBackStack() },
                         onNavigateToPaywall = { navController.navigate(Screen.Paywall.route) }
-                    ) 
+                    )
                 }
                 composable(Screen.Paywall.route) {
                     PaywallScreen(

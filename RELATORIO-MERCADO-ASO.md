@@ -55,13 +55,14 @@ O mercado global de apps de bem-estar espiritual foi avaliado em **US$ 2,52 bilh
 - Infra de compliance parcial pronta (política de privacidade, backup rules).
 
 ### Pontos fracos
-- **Anúncios não implementados** (AdMob com ID de teste + placeholder) → 100% dos usuários free geram receita zero hoje.
-- **Favoritar é premium-only** — gating agressivo demais; favoritar é o gancho de retenção, não o prêmio. Concorrência dá de graça.
-- **Sem widget** — o recurso mais importante da categoria.
-- Play Billing 6.1.0 **desatualizado** (Google exige Billing Library 7+ para updates desde ago/2025; recomendável ir direto para 7.x/8.x).
-- targetSdk 35: a partir de **31/08/2026** novos updates exigirão **API 36** — precisa migrar até lá.
-- Sem analytics/crashlytics → decisões às cegas (não se sabe conversão do paywall, retenção, categoria mais usada).
-- Strings hardcoded (sem `strings.xml`) → impossível localizar; sem In-App Review API; tema padrão "Areia" marcado como exclusivo premium (inconsistência).
+> **Nota (08/07/2026):** este SWOT é um retrato do app em 05/07/2026. Desde então, os pontos abaixo foram resolvidos: AdMob real implementado (banner/interstitial/rewarded + UMP), favoritos liberados no free (limite 20), widget de tela inicial lançado, Play Billing atualizado para 7.1.1, targetSdk migrado para 36, e Firebase Analytics/Crashlytics + In-App Review implementados. Ver `README.md` para o estado atual completo e `docs/GUIA-PUBLICACAO-PLAY-STORE.md` para os pendentes reais de publicação.
+- ~~**Anúncios não implementados** (AdMob com ID de teste + placeholder) → 100% dos usuários free geram receita zero hoje.~~
+- ~~**Favoritar é premium-only** — gating agressivo demais; favoritar é o gancho de retenção, não o prêmio. Concorrência dá de graça.~~
+- ~~**Sem widget** — o recurso mais importante da categoria.~~
+- ~~Play Billing 6.1.0 **desatualizado** (Google exige Billing Library 7+ para updates desde ago/2025; recomendável ir direto para 7.x/8.x).~~
+- ~~targetSdk 35: a partir de **31/08/2026** novos updates exigirão **API 36** — precisa migrar até lá.~~
+- ~~Sem analytics/crashlytics → decisões às cegas (não se sabe conversão do paywall, retenção, categoria mais usada).~~
+- Strings hardcoded (sem `strings.xml`) para nomes de categoria/tema (decisão deliberada — ver `README.md` § Observações conhecidas, são chaves de dados, não apenas texto de UI); ~~sem In-App Review API~~; ~~tema padrão "Areia" marcado como exclusivo premium (inconsistência)~~.
 - Sem presença de marca (ícone/screenshots não otimizados para conversão na loja).
 
 ### Ameaças
@@ -113,16 +114,18 @@ O app já tem o "remova anúncios com Premium" prometido na UI, mas não exibe a
 
 ## 4. Guia de publicação na Play Store (2026) — compliance e alcance
 
+> **Nota (08/07/2026):** a versão passo a passo, atualizada e detalhada deste guia — já refletindo que target API 36 e Billing 7.1.1 foram concluídos — está em `docs/GUIA-PUBLICACAO-PLAY-STORE.md`. Os itens 1, 2 e 5 a 10 abaixo continuam válidos como checklist rápido.
+
 ### 4.1 Requisitos técnicos obrigatórios
 
 1. **Conta de desenvolvedor** (US$ 25 única) com identidade verificada (incl. D-U-N-S para contas de organização).
 2. **Formato AAB** (`./gradlew bundleRelease`) assinado com **Play App Signing**.
-3. **Target API:** hoje o app está em 35 (ok). A partir de **31/08/2026, novos apps e updates devem ter target API 36 (Android 16)** — planejar a migração já.
-4. **Billing Library 7+** (o app usa 6.1.0 — bloqueia updates; atualizar é pré-requisito de publicação).
+3. ~~**Target API:** hoje o app está em 35 (ok). A partir de **31/08/2026, novos apps e updates devem ter target API 36 (Android 16)** — planejar a migração já.~~ **Concluído:** targetSdk já é 36.
+4. ~~**Billing Library 7+** (o app usa 6.1.0 — bloqueia updates; atualizar é pré-requisito de publicação).~~ **Concluído:** já em 7.1.1.
 5. **Conta pessoal criada após nov/2023:** obrigatório **teste fechado com 12+ testadores opt-in por 14 dias contínuos** antes de pedir produção (revisão de ~7 dias). Recrute na própria comunidade/igreja/família e grupos de WhatsApp — o nicho facilita isso.
 6. **Data Safety (Segurança dos dados):** declarar coleta/uso de dados. Com AdMob, é obrigatório declarar coleta de identificadores de dispositivo/dados de publicidade por terceiros. Deve bater com a política de privacidade (já existe o HTML — hospedar em URL pública, ex.: robertotavares.blog).
-7. **Política de privacidade** com URL válida no Play Console e dentro do app (link em Configurações).
-8. **Permissões sensíveis:** `SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM` — o Google restringiu alarmes exatos; para app de lembrete devocional, considere `setAndAllowWhileIdle` (inexato) para evitar fricção de permissão e questionamento na revisão. `FOREGROUND_SERVICE` declarado sem uso aparente → **remover** (revisões reprovam permissões não justificadas).
+7. **Política de privacidade** com URL válida no Play Console e dentro do app (link em Configurações). **Concluído:** link adicionado em Configurações → Sobre; falta só publicar `versiculo_do_dia_privacy_policy.html` numa URL real e atualizar `privacy_policy_url` em `strings.xml` — ver `docs/GUIA-PUBLICACAO-PLAY-STORE.md` § 2.
+8. ~~**Permissões sensíveis:** `SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM`... `FOREGROUND_SERVICE` declarado sem uso aparente → **remover**.~~ **Concluído:** o app usa WorkManager inexato (sem alarme exato) e o manifesto atual não declara `FOREGROUND_SERVICE` nem `SCHEDULE_EXACT_ALARM`.
 9. **Declarações de conteúdo:** questionário de classificação etária (livre), público-alvo (não marcar crianças — evita política de famílias), declaração de anúncios = sim.
 10. **Compliance de anúncios:** AdMob real (trocar o APPLICATION_ID de teste), UMP consent form, e anúncios que não enganem (não colocar ads que pareçam conteúdo).
 

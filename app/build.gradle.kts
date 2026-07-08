@@ -37,8 +37,8 @@ android {
         applicationId = "blog.robertotavares.cemversiculos"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

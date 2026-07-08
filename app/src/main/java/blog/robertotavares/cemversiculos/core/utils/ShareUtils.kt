@@ -14,11 +14,16 @@ import java.io.FileOutputStream
 
 object ShareUtils {
 
+    private fun playStoreLink(context: Context) =
+        "https://play.google.com/store/apps/details?id=${context.packageName}"
+
+    private fun downloadCta(context: Context) =
+        context.getString(R.string.share_download_cta, playStoreLink(context))
+
     fun shareText(context: Context, text: String, title: String = "Compartilhar") {
-        val playStoreLink = "https://play.google.com/store/apps/details?id=${context.packageName}"
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "$text\n\n$playStoreLink")
+            putExtra(Intent.EXTRA_TEXT, "$text\n\n${downloadCta(context)}")
         }
         context.startActivity(Intent.createChooser(intent, title))
     }
@@ -48,11 +53,16 @@ object ShareUtils {
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, contentUri)
+            // Texto de verdade (não pixels): chega como legenda com link clicável nos apps de
+            // destino - ver R.string.share_download_cta.
+            putExtra(Intent.EXTRA_TEXT, downloadCta(context))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(shareIntent, "Compartilhar Imagem"))
     }
 
+    // Mantém na imagem só a marca d'água de marca (nome do app); o convite para baixar e o link
+    // vão como EXTRA_TEXT (shareBitmap/shareText) para chegarem clicáveis, não como pixels.
     private fun addWatermark(context: Context, bitmap: Bitmap): Bitmap {
         val watermarked = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(watermarked)
@@ -64,19 +74,12 @@ object ShareUtils {
             textAlign = Paint.Align.CENTER
             isFakeBoldText = true
         }
-        val messagePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(170, 150, 150, 150)
-            textSize = 11 * density
-            textAlign = Paint.Align.CENTER
-        }
 
         val centerX = watermarked.width / 2f
         val bottomPadding = 14 * density
-        val messageY = watermarked.height - bottomPadding
-        val appNameY = messageY - messagePaint.textSize - (4 * density)
+        val appNameY = watermarked.height - bottomPadding
 
         canvas.drawText(context.getString(R.string.app_name), centerX, appNameY, appNamePaint)
-        canvas.drawText(context.getString(R.string.watermark_download_free), centerX, messageY, messagePaint)
 
         return watermarked
     }

@@ -16,6 +16,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
+// Roda quase imediatamente na primeira instalação (ver ExistingPeriodicWorkPolicy.KEEP em
+// schedule()), concorrendo com a HomeViewModel para semear o banco. Essa concorrência é segura
+// porque ContentRepositoryImpl.seedInitialData é serializada por um Mutex — não chame
+// contentDao/insert diretamente aqui nem duplique a lógica de semeadura fora do repositório.
 @HiltWorker
 class VersiculoWidgetWorker @AssistedInject constructor(
     @Assisted context: Context,

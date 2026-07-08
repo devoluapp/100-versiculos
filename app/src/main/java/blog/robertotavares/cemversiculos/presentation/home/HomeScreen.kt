@@ -159,22 +159,27 @@ fun HomeScreen(
                     )
                 }
 
-                if (viewModel.streakDays > 0) {
-                    StreakChip(days = viewModel.streakDays)
-                }
-
-                IconButton(
-                    onClick = onNavigateToSettings,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.surface, CircleShape)
-                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.cd_settings),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    if (viewModel.showStreakBadge) {
+                        StreakChip(days = viewModel.streakDays)
+                    }
+
+                    IconButton(
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.cd_settings),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 

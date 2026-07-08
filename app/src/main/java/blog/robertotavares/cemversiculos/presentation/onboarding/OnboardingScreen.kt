@@ -115,6 +115,7 @@ fun OnboardingScreen(
                 )
                 OnboardingStep.Tutorial -> TutorialStep {
                     viewModel.completeOnboarding()
+                    selectedCategories.firstOrNull()?.let { homeViewModel.selectCategory(it) }
                     onFinish()
                 }
             }

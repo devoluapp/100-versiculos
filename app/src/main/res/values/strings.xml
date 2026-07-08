@@ -41,7 +41,10 @@
     <!-- Tela Home -->
     <string name="label_premium_active">Premium Ativado</string>
     <string name="label_download_play_store">Baixe na Play Store</string>
-    <string name="watermark_download_free">Baixe grátis na Play Store</string>
+    <!-- Enviada como texto (EXTRA_TEXT) na mensagem de compartilhamento, não desenhada na
+         imagem: assim o link chega clicável no app de destino (WhatsApp, SMS, e-mail etc.),
+         em vez de virar pixels ilegíveis/não-clicáveis na foto. -->
+    <string name="share_download_cta">Baixe grátis na Play Store o aplicativo Versículos do Dia %1$s</string>
     <string name="label_streak_days">🙌 %1$d dias com a Palavra</string>
     <string name="empty_favorites">Você ainda não tem versículos favoritos.</string>
     <string name="empty_category">Não há versículos para esta categoria.</string>
@@ -70,7 +73,9 @@
     <string name="label_lifetime_subtitle">Pague uma vez, use para sempre</string>
     <string name="badge_free_trial">7 dias grátis</string>
     <string name="label_loading_offers">Carregando ofertas...</string>
-    <string name="label_cancel_anytime">Cancele quando quiser na Google Play Store.</string>
+    <!-- Divulgação exigida pela política de assinaturas do Google Play: precisa deixar claro,
+         antes da compra, que a assinatura renova automaticamente e como cancelar. -->
+    <string name="label_cancel_anytime">As assinaturas mensal e anual renovam automaticamente pelo mesmo valor até você cancelar. Cancele quando quiser em Play Store > Assinaturas.</string>
     <string name="feature_notifications">Até 20 notificações personalizadas por dia</string>
     <string name="feature_categories">Acesso a todas as categorias avançadas</string>
     <string name="feature_themes">Temas visuais exclusivos</string>
@@ -96,6 +101,23 @@
     <string name="desc_add_widget">Adicione o versículo do dia à sua tela inicial.</string>
     <string name="action_add_widget">Adicionar à tela inicial</string>
     <string name="widget_manual_instructions">Se não abrir automaticamente: toque e segure uma área vazia da tela inicial, escolha \"Widgets\" e procure por %1$s.</string>
+    <!-- Amostra estática exibida na tela do sistema de adicionar widget (antes de o usuário tocar
+         em "Adicionar"); precisa ser um versículo universalmente reconhecido, já que é a mesma
+         amostra para qualquer categoria/tema escolhido depois. -->
+    <string name="widget_preview_verse_text">"Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna."</string>
+    <string name="widget_preview_verse_reference">João 3:16</string>
+
+    <!-- Sobre -->
+    <string name="section_about">Sobre</string>
+    <string name="label_app_version">Versão %1$s</string>
+    <string name="label_privacy_policy">Política de Privacidade</string>
+    <string name="label_terms_of_use">Termos de Uso</string>
+    <!-- TODO antes de publicar: troque pela URL pública real onde
+         versiculo_do_dia_privacy_policy.html (e um termos_de_uso.html equivalente) estiverem
+         hospedados - ver docs/GUIA-PUBLICACAO-PLAY-STORE.md. O Google Play exige que o link
+         funcione tanto no campo do Play Console quanto aqui dentro do app. -->
+    <string name="privacy_policy_url" translatable="false">https://devoluapp.github.io/docs_apps_android/versiculo_do_dia_privacy_policy.html</string>
+    <string name="terms_of_use_url" translatable="false">https://devoluapp.github.io/docs_apps_android/termos_de_uso.html</string>
 
     <!-- Onboarding -->
     <string name="subtitle_app_tagline">Versículos Bíblicos Diários</string>

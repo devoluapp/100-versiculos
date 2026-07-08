@@ -4,6 +4,8 @@ Plano concreto, sequencial e executável via **Claude Code + Android Studio**. C
 
 **Como usar:** abra o terminal na raiz do projeto, rode `claude` e cole o prompt da etapa. Valide no Android Studio (build + teste no emulador) antes de commitar.
 
+> **Status em 08/07/2026:** Fases 0 a 6 concluídas (app na versão 1.6/versionCode 6, targetSdk 36, Billing 7.1.1, AdMob+UMP, Analytics/Crashlytics/In-App Review, widget, streak e marca d'água implementados). O guia detalhado de publicação no Play Console, com os pendentes reais que faltam (IDs de AdMob de produção, URL da política de privacidade), está em `docs/GUIA-PUBLICACAO-PLAY-STORE.md` — use-o em vez da Fase 6 abaixo, que foi o rascunho inicial dessa etapa. A Fase 7 (futuro) segue como backlog de ideias.
+
 ---
 
 ## Fase 0 — Higiene do projeto (30 min)

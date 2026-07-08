@@ -5,6 +5,8 @@ import android.app.Activity
 import android.app.TimePickerDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import blog.robertotavares.cemversiculos.BuildConfig
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
 import blog.robertotavares.cemversiculos.core.widget.VersiculoWidgetReceiver
@@ -317,6 +320,35 @@ fun SettingsScreen(
                         stringResource(R.string.widget_manual_instructions, appName),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            // Seção: Sobre
+            SettingsSection(title = stringResource(R.string.section_about), icon = Icons.Default.Info) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        stringResource(R.string.label_app_version, BuildConfig.VERSION_NAME),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
+                    Text(
+                        text = stringResource(R.string.label_privacy_policy),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl)))
+                        }
+                    )
+                    val termsOfUseUrl = stringResource(R.string.terms_of_use_url)
+                    Text(
+                        text = stringResource(R.string.label_terms_of_use),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(termsOfUseUrl)))
+                        }
                     )
                 }
             }

@@ -10,15 +10,22 @@ import blog.robertotavares.cemversiculos.data.local.ContentItemEntity
 import blog.robertotavares.cemversiculos.domain.repository.ContentRepository
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val contentRepository: ContentRepository,
@@ -47,6 +54,13 @@ class HomeViewModel @Inject constructor(
     val isPremium = settingsRepository.getPremiumFlow()
     val streakDays: Int = settingsRepository.getStreakDays()
 
+    /**
+     * O badge de streak só deve aparecer quando representa uma conquista real
+     * (uso em dias consecutivos), não no dia 1 de uma instalação nova, onde
+     * [streakDays] sempre vale 1.
+     */
+    val showStreakBadge: Boolean get() = streakDays >= MIN_STREAK_DAYS_TO_DISPLAY
+
     val bannerAdUnitId: String get() = adManager.bannerAdUnitId
 
     private var verseSwipeCount = 0
@@ -60,15 +74,51 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            selectedCategory.collectLatest { category ->
-                loadContents(category)
-            }
+            // flatMapLatest é essencial aqui: a versão antiga chamava loadContents(category)
+            // de dentro de um collectLatest, mas loadContents lançava sua PRÓPRIA coroutine via
+            // viewModelScope.launch. Como collectLatest só cancela o trabalho que roda dentro do
+            // seu próprio bloco, aquele launch interno escapava da cancelação - a troca de
+            // categoria nunca cancelava a carga anterior. Se a categoria anterior ainda estivesse
+            // semeando (assets grandes, ou concorrendo com o Mutex de seedInitialData com o
+            // VersiculoWidgetWorker) e terminasse DEPOIS da nova seleção, ela sobrescrevia
+            // _contents com os dados (ou lista vazia) da categoria errada - por exemplo, o
+            // usuário favoritar um verso, trocar rapidamente de categoria até "Favoritas" e ver
+            // "sem versículos" porque uma carga anterior, ainda em voo, venceu a corrida e
+            // sobrescreveu a lista de favoritos por último. flatMapLatest cancela de verdade o
+            // Flow anterior (contentFlowForCategory) assim que uma nova categoria é selecionada.
+            selectedCategory
+                .flatMapLatest { category -> contentFlowForCategory(category) }
+                .collectLatest { list -> updateContentsList(list) }
         }
         viewModelScope.launch {
             contentRepository.getFavoriteContents().collectLatest { favorites ->
                 _favoriteCount.value = favorites.size
             }
         }
+    }
+
+    private fun contentFlowForCategory(category: String): Flow<List<ContentItemEntity>> {
+        // Snapshot único de propósito (não observamos o Flow do Room continuamente): a lista é
+        // reordenada por lastShownTimestamp em updateContentsList, e markAsShown grava esse
+        // timestamp ~2s depois de cada verso abrir. Se observássemos o Flow ao vivo, essa
+        // escrita reordenaria a lista debaixo do usuário enquanto ele ainda estivesse folheando
+        // o HorizontalPager. O flatMapLatest ao redor desta função já garante que uma nova
+        // seleção de categoria cancela este snapshot se ele ainda estiver em andamento.
+        return flow {
+            val list = if (category == "Favoritas") {
+                contentRepository.getFavoriteContents().first()
+            } else {
+                // seedInitialData é idempotente e serializada por Mutex em
+                // ContentRepositoryImpl (chamar sempre, mesmo com a categoria já semeada, é
+                // barato: só faz um SELECT COUNT antes de devolver). Veja o comentário da classe
+                // para o histórico do bug de semeadura concorrente que isso evita.
+                contentRepository.seedInitialData(category)
+                contentRepository.getContentsByCategory(category).first()
+            }
+            emit(list)
+        }
+            .onStart { _isLoading.value = true }
+            .onEach { _isLoading.value = false }
     }
 
     fun isOnboardingCompleted() = settingsRepository.isOnboardingCompleted()
@@ -84,29 +134,6 @@ class HomeViewModel @Inject constructor(
 
     fun updateTheme(theme: String) {
         settingsRepository.saveSelectedTheme(theme)
-    }
-
-    fun loadContents(category: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            
-            val flow = if (category == "Favoritas") {
-                contentRepository.getFavoriteContents()
-            } else {
-                contentRepository.getContentsByCategory(category)
-            }
-            
-            val list = flow.first()
-            
-            if (list.isEmpty() && category != "Favoritas") {
-                contentRepository.seedInitialData(category)
-                val newList = contentRepository.getContentsByCategory(category).first()
-                updateContentsList(newList)
-            } else {
-                updateContentsList(list)
-            }
-            _isLoading.value = false
-        }
     }
 
     private fun updateContentsList(list: List<ContentItemEntity>) {
@@ -175,5 +202,6 @@ class HomeViewModel @Inject constructor(
     companion object {
         private const val INTERSTITIAL_SWIPE_THRESHOLD = 10
         private const val FREE_FAVORITE_LIMIT = 20
+        private const val MIN_STREAK_DAYS_TO_DISPLAY = 3
     }
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Par escuro de values/widget_preview_colors.xml - mesma paleta (Areia) do widget real. -->
+<resources>
+    <color name="widget_preview_background">#211D0F</color>
+    <color name="widget_preview_primary">#E6C04C</color>
+    <color name="widget_preview_primary_soft">#3DE6C04C</color>
+    <color name="widget_preview_text">#F1F5F9</color>
+    <color name="widget_preview_text_muted">#B3F1F5F9</color>
+</resources>
