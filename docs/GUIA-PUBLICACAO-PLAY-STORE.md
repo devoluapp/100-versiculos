@@ -1,6 +1,6 @@
 # Guia de publicação do "Versículos do dia" na Google Play Store
 
-> Documento vivo, escrito a partir do estado real do código em 08/07/2026 (versionCode 6, versionName 1.6). Sempre que o app mudar de forma relevante para a loja (novo SDK, nova permissão, novo produto de assinatura, nova categoria de anúncio), atualize este guia junto.
+> Documento vivo, escrito a partir do estado real do código em 08/07/2026 (versionCode 7, versionName 1.7, já com as product flavors `staging`/`production`). Sempre que o app mudar de forma relevante para a loja (novo SDK, nova permissão, novo produto de assinatura, nova categoria de anúncio), atualize este guia junto.
 
 Este guia cobre **tudo que precisa ser configurado no Google Play Console** para publicar o app com o menor risco possível de rejeição, na ordem em que você deve fazer. Cada seção diz exatamente o que preencher, com base no que o app realmente faz — não em suposições genéricas.
 
@@ -10,7 +10,7 @@ Este guia cobre **tudo que precisa ser configurado no Google Play Console** para
 |---|---|---|
 | IDs reais do AdMob (`admob.appId`, `admob.bannerId`, `admob.interstitialId`, `admob.rewardedId`) | `local.properties` (não versionado) | Sem eles, o build de release usa os IDs de teste do Google — a Play Store rejeita/suspende apps publicados com anúncios de teste em produção. Ver `app/build.gradle.kts:19-30` e a seção 5 deste guia. |
 | URL pública da Política de Privacidade e dos Termos de Uso | `app/src/main/res/values/strings.xml` → `privacy_policy_url` e `terms_of_use_url` (hoje com placeholder `SEU-DOMINIO-AQUI.com`) | O Play Console exige uma URL real e funcional no campo "Política de privacidade"; o app também abre essa mesma URL em Configurações → Sobre. Ver seção 2. |
-| Keystore de upload | Fora do repo (nunca commitar) | Sem uma keystore, não é possível gerar o AAB assinado para subir ao Console. Ver seção 6. |
+| Keystore de upload | Gerada via `keytool` (passo a passo na seção 6), nunca commitada no repositório | Necessária para assinar o `.aab` pelo assistente do Android Studio (Build → Generate Signed App Bundle). |
 
 ---
 
@@ -146,24 +146,25 @@ Passos práticos no formulário:
    keytool -genkeypair -v -keystore upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
    ```
    Guarde o arquivo `.jks` e a senha em local seguro **fora do repositório** (já coberto por `*.jks` no `.gitignore`) — se perdê-lo depois de já ter enviado a primeira versão, você precisa abrir um processo de suporte com o Google para recuperar o app.
-2. Configure `signingConfigs` no `app/build.gradle.kts` (ou use o assistente do Android Studio: **Build → Generate Signed App Bundle**) apontando para essa keystore.
-3. **Ative o Play App Signing** (é o padrão para apps novos): o Google gerencia a chave final de assinatura, e você só precisa da chave de upload acima.
-4. Preencha os IDs reais de AdMob em `local.properties` antes de gerar o release (ver tabela de pendentes no topo deste guia) — confira lendo `app/build.gradle.kts:19-30,67-71`: sem isso, o release usa IDs de teste do Google.
-5. Gere o Android App Bundle:
-   ```bash
-   ./gradlew bundleRelease
-   ```
-   O arquivo sai em `app/build/outputs/bundle/release/app-release.aab`.
-6. Rode um teste rápido local antes de subir: instale o `.aab` via `bundletool` ou gere um APK de teste (`./gradlew assembleRelease`) e confirme no dispositivo físico que: anúncios reais aparecem (não os de teste), a compra abre a tela de billing corretamente, e as notificações continuam funcionando.
+2. **Ative o Play App Signing** (é o padrão para apps novos): o Google gerencia a chave final de assinatura, e você só precisa da chave de upload acima.
+3. **Duas product flavors decidem os IDs de anúncio** (`app/build.gradle.kts`, dimensão `distribution`): `staging` sempre usa os IDs de teste oficiais do Google, hardcoded — nunca lê `local.properties`; `production` usa os IDs reais, de `local.properties`. Preencha `admob.appId`/`admob.bannerId`/`admob.interstitialId`/`admob.rewardedId` em `local.properties` antes do passo 4.
+4. **Gere o AAB pelo Android Studio: Build → Generate Signed App Bundle / APK.** Aponte para a keystore do passo 1, informe as senhas, e na lista de variantes escolha:
+   - **`stagingRelease`** → para subir nas faixas de TESTE (Interno/Fechado/Aberto) — gera `app-staging-release.aab`.
+   - **`productionRelease`** → **só** para a faixa de Produção — gera `app-production-release.aab`. Único que deve conter os IDs reais de anúncio.
+
+   Nunca gere/suba um `bundleRelease` genérico sem especificar a variante — é fácil confundir qual `.aab` é qual.
+5. Antes de subir o AAB de produção, instale a variante `productionRelease` num dispositivo físico e confirme que anúncios reais aparecem (não os de teste — anúncio de teste sempre mostra um selo "Test Ad"), a compra abre a tela de billing corretamente, e as notificações continuam funcionando.
 
 ---
 
 ## 7. Faixas de teste e lançamento gradual
 
-1. **Play Console → Testar e lançar → Testes → Teste fechado.**
+**Regra de ouro: `app-staging-release.aab` vai para Interno/Fechado/Aberto; `app-production-release.aab` vai exclusivamente para Produção.** Subir o AAB de staging em produção faria o app veicular anúncios de teste para usuários reais (violação grave da política do AdMob); subir o de produção numa faixa de teste faria seus testadores gerarem cliques/impressões reais nos seus próprios anúncios (risco de suspensão da conta AdMob por tráfego inválido).
+
+1. **Play Console → Testar e lançar → Testes → Teste fechado.** Faça upload do `app-staging-release.aab`.
 2. Crie uma lista de e-mails com pelo menos **12 testadores** (familiares, amigos, comunidade da igreja, grupos de WhatsApp — o nicho facilita recrutar rápido) e mantenha o teste ativo por **14 dias corridos ininterruptos** (obrigatório para contas pessoais criadas após novembro de 2023, antes de liberar produção pela primeira vez).
 3. Durante esse período, monitore **Android Vitals** (Play Console → Qualidade) — taxa de crash e ANR baixas são pré-requisito informal para não ter a visibilidade da ficha reduzida.
-4. Ao final dos 14 dias, promova a build para **Produção**, com **lançamento gradual** (ex.: 10% → 50% → 100% ao longo de alguns dias), para limitar o impacto de qualquer problema encontrado tardiamente.
+4. Ao final dos 14 dias, gere e suba o `app-production-release.aab` (flavor `production`, com os IDs reais de anúncio) para a faixa de **Produção**, com **lançamento gradual** (ex.: 10% → 50% → 100% ao longo de alguns dias), para limitar o impacto de qualquer problema encontrado tardiamente.
 5. Aproveite o teste fechado para também gerar o **Relatório pré-lançamento** (Pre-launch report, automático), que roda o app em vários aparelhos/versões de Android e aponta crashes, problemas de acessibilidade e de performance antes da revisão humana.
 
 ---

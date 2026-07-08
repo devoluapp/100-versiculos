@@ -48,13 +48,15 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "ADMOB_APP_ID", "\"$admobTestAppId\"")
-            buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$admobTestBannerId\"")
-            buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"$admobTestInterstitialId\"")
-            buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"$admobTestRewardedId\"")
-            manifestPlaceholders["admobAppId"] = admobTestAppId
+            // Nenhum buildConfigField de anúncio aqui de propósito: quem decide se os IDs são
+            // de teste ou reais é a productFlavor (distribution) abaixo, não o buildType. Em
+            // *qualquer* variante debug, BuildConfig.DEBUG=true já faz o AdManager usar as
+            // constantes de teste locais (ver AdManager.kt) independentemente da flavor.
         }
         release {
+            // Sem signingConfig aqui de propósito: assine pelo assistente do Android Studio
+            // (Build > Generate Signed App Bundle / APK), que pede a keystore na hora e não
+            // depende de nada configurado no Gradle.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -64,6 +66,32 @@ android {
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
             }
+        }
+    }
+
+    flavorDimensions += "distribution"
+    productFlavors {
+        // Toda faixa de TESTE da Play Store (interno, fechado, aberto) deve ser publicada a
+        // partir desta flavor: os IDs de anúncio abaixo são SEMPRE os de teste oficiais do
+        // Google, escritos diretamente aqui - não existe nenhum caminho de código que leia
+        // local.properties ou variáveis de ambiente para "staging", então uma build
+        // stagingRelease sair com os IDs reais de produção por engano.
+        create("staging") {
+            dimension = "distribution"
+            versionNameSuffix = "-staging"
+            buildConfigField("String", "ADMOB_APP_ID", "\"$admobTestAppId\"")
+            buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$admobTestBannerId\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"$admobTestInterstitialId\"")
+            buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"$admobTestRewardedId\"")
+            manifestPlaceholders["admobAppId"] = admobTestAppId
+        }
+        // Única flavor que deve ser publicada na faixa de Produção da Play Store. Os IDs reais
+        // vêm de local.properties (admob.appId/admob.bannerId/admob.interstitialId/
+        // admob.rewardedId). Mesmo assim, em variante *debug* (productionDebug) os IDs de teste
+        // locais continuam valendo (AdManager.kt checa BuildConfig.DEBUG primeiro), só
+        // productionRelease usa os IDs reais de fato.
+        create("production") {
+            dimension = "distribution"
             buildConfigField("String", "ADMOB_APP_ID", "\"$releaseAdmobAppId\"")
             buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$releaseAdmobBannerId\"")
             buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"$releaseAdmobInterstitialId\"")

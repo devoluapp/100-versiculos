@@ -73,6 +73,8 @@
     <string name="label_lifetime_subtitle">Pague uma vez, use para sempre</string>
     <string name="badge_free_trial">7 dias grátis</string>
     <string name="label_loading_offers">Carregando ofertas...</string>
+    <string name="label_offers_unavailable">Não foi possível carregar as ofertas agora. Verifique sua conexão e tente novamente.</string>
+    <string name="action_try_again">Tentar novamente</string>
     <!-- Divulgação exigida pela política de assinaturas do Google Play: precisa deixar claro,
          antes da compra, que a assinatura renova automaticamente e como cancelar. -->
     <string name="label_cancel_anytime">As assinaturas mensal e anual renovam automaticamente pelo mesmo valor até você cancelar. Cancele quando quiser em Play Store > Assinaturas.</string>

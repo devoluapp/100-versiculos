@@ -17,6 +17,7 @@ class PaywallViewModel @Inject constructor(
 ) : ViewModel() {
 
     val products = billingManager.products
+    val isLoading = billingManager.isLoading
     val isPremium = settingsRepository.getPremiumFlow()
 
     init {
@@ -26,5 +27,9 @@ class PaywallViewModel @Inject constructor(
     fun buyProduct(activity: Activity, productDetails: ProductDetails) {
         analyticsHelper.logAssinaturaIniciada(productDetails.productId)
         billingManager.launchBillingFlow(activity, productDetails)
+    }
+
+    fun retry() {
+        billingManager.retry()
     }
 }

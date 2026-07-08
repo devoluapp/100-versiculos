@@ -33,6 +33,7 @@ fun PaywallScreen(
 ) {
     val context = LocalContext.current
     val products by viewModel.products.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
 
     LaunchedEffect(isPremium) {
@@ -90,8 +91,21 @@ fun PaywallScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             if (products.isEmpty()) {
-                CircularProgressIndicator()
-                Text(stringResource(R.string.label_loading_offers), modifier = Modifier.padding(top = 16.dp))
+                if (isLoading) {
+                    CircularProgressIndicator()
+                    Text(stringResource(R.string.label_loading_offers), modifier = Modifier.padding(top = 16.dp))
+                } else {
+                    Text(
+                        text = stringResource(R.string.label_offers_unavailable),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { viewModel.retry() }) {
+                        Text(stringResource(R.string.action_try_again))
+                    }
+                }
             } else {
                 val monthlyProduct = products.firstOrNull { it.productId == "mensal_990" }
                 val annualProduct = products.firstOrNull { it.productId == "anual_5900" }

@@ -24,22 +24,43 @@ class BillingManager @Inject constructor(
     private val _products = MutableStateFlow<List<ProductDetails>>(emptyList())
     val products = _products.asStateFlow()
 
+    // Sem isto, uma falha de conexão ou de consulta (ex.: ofertas ainda propagando no Play
+    // Console, sem Play Store logada, indisponibilidade transitória) deixava a Paywall presa
+    // para sempre em "Carregando ofertas...", já que a tela só decidia o que mostrar olhando
+    // se `products` estava vazia - sem jeito de diferenciar "ainda carregando" de "terminou e
+    // não veio nada". Ver PaywallScreen.kt.
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         startConnection()
     }
 
     private fun startConnection() {
+        _isLoading.value = true
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     queryProducts()
                     checkActivePurchases()
+                } else {
+                    _isLoading.value = false
                 }
             }
 
             override fun onBillingServiceDisconnected() {
+                _isLoading.value = false
             }
         })
+    }
+
+    /** Chamado pela tela de paywall quando o usuário toca em "Tentar novamente". */
+    fun retry() {
+        if (billingClient.isReady) {
+            queryProducts()
+        } else {
+            startConnection()
+        }
     }
 
     private fun queryProducts() {
@@ -63,9 +84,12 @@ class BillingManager @Inject constructor(
             .build()
 
         billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                _products.value = productDetailsList
+            _products.value = if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                productDetailsList
+            } else {
+                emptyList()
             }
+            _isLoading.value = false
         }
     }
 

@@ -113,15 +113,33 @@ app/src/main/java/blog/robertotavares/cemversiculos/
 
 ## Como buildar
 
-```bash
-# Debug
-./gradlew assembleDebug
+O app tem duas **product flavors** na dimensão `distribution` — `staging` e `production` —, cada uma com seus próprios IDs de anúncio AdMob embutidos via `BuildConfig` (ver `app/build.gradle.kts`). A flavor decide isso, não o build type: mesmo uma `productionDebug` usa os IDs de teste (o `AdManager` sempre prioriza `BuildConfig.DEBUG`), então IDs reais só saem em `productionRelease`.
 
-# Release (minify + shrink habilitados; requer keystore configurada)
-./gradlew bundleRelease
+| Flavor | IDs de anúncio | Uso |
+|---|---|---|
+| `staging` | Sempre os de teste oficiais do Google, hardcoded — nunca lê `local.properties` | Builds para as faixas de teste da Play Store (interno/fechado/aberto) e para instalar em dispositivo/emulador no dia a dia |
+| `production` | Reais, de `local.properties` (preencha `admob.appId`/`admob.bannerId`/`admob.interstitialId`/`admob.rewardedId`) | **Só** a faixa de Produção da Play Store |
+
+```bash
+# Debug local (recomendado no dia a dia — nunca usa IDs reais de anúncio)
+./gradlew installStagingDebug
+
+# AAB para subir numa faixa de TESTE da Play Store (interno/fechado/aberto)
+./gradlew bundleStagingRelease
+
+# AAB para subir na faixa de PRODUÇÃO — único que deve conter os IDs reais de anúncio
+./gradlew bundleProductionRelease
 ```
 
+`./gradlew assembleDebug`/`bundleRelease` (sem o nome da flavor) ainda funcionam e continuam existindo como tarefas agregadoras do Gradle, mas builadas as duas flavors de uma vez — prefira sempre nomear a flavor explicitamente para não gerar (ou subir) o artefato errado por engano.
+
 Requisitos: JDK 17, Android SDK 36. Abra no Android Studio (Ladybug+) e sincronize o Gradle.
+
+### Assinatura de release
+
+Para gerar um `.aab` assinado **pelo Android Studio** (Build → Generate Signed App Bundle / APK), o assistente pede o caminho da keystore e as senhas diretamente na interface — não depende de nada em `app/build.gradle.kts`. Na lista de variantes do assistente, escolha `stagingRelease` (faixas de teste) ou `productionRelease` (faixa de Produção).
+
+`app/build.gradle.kts` também tem uma `signingConfig` opcional lendo de `local.properties` (`keystore.file`, `keystore.password`, `keystore.keyAlias`, `keystore.keyPassword`), útil só se você preferir buildar por linha de comando (`./gradlew bundleProductionRelease`) em vez do assistente. Sem preencher esses campos, o assistente do Android Studio continua funcionando normalmente — só o build por linha de comando de uma variante `*Release` falharia no passo de assinatura.
 
 ## Documentos do projeto
 
