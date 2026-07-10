@@ -122,4 +122,8 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getLastStreakDate(): String? = preferenceManager.getLastStreakDate()
 
     override fun saveLastStreakDate(date: String) = preferenceManager.saveLastStreakDate(date)
+
+    override fun getPremiumTeaserVariantIndex(): Int = preferenceManager.getPremiumTeaserVariantIndex()
+
+    override fun savePremiumTeaserVariantIndex(index: Int) = preferenceManager.savePremiumTeaserVariantIndex(index)
 }

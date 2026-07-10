@@ -9,6 +9,7 @@ import blog.robertotavares.cemversiculos.core.review.InAppReviewManager
 import blog.robertotavares.cemversiculos.data.local.ContentItemEntity
 import blog.robertotavares.cemversiculos.domain.repository.ContentRepository
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
+import blog.robertotavares.cemversiculos.presentation.paywall.PREMIUM_TEASER_VARIANT_COUNT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -64,8 +65,8 @@ class HomeViewModel @Inject constructor(
     val bannerAdUnitId: String get() = adManager.bannerAdUnitId
 
     private var verseSwipeCount = 0
-    private val _interstitialEvent = Channel<Unit>(Channel.CONFLATED)
-    val interstitialEvent = _interstitialEvent.receiveAsFlow()
+    private val _premiumTeaserEvent = Channel<Int>(Channel.CONFLATED)
+    val premiumTeaserEvent = _premiumTeaserEvent.receiveAsFlow()
 
     private val _favoriteCount = MutableStateFlow(0)
     val favoriteCount = _favoriteCount.asStateFlow()
@@ -189,18 +190,17 @@ class HomeViewModel @Inject constructor(
     fun onVerseSwiped() {
         if (isPremium.value) return
         verseSwipeCount++
-        if (verseSwipeCount >= INTERSTITIAL_SWIPE_THRESHOLD) {
+        if (verseSwipeCount >= PREMIUM_TEASER_SWIPE_THRESHOLD) {
             verseSwipeCount = 0
-            _interstitialEvent.trySend(Unit)
+            val variantIndex = settingsRepository.getPremiumTeaserVariantIndex()
+            settingsRepository.savePremiumTeaserVariantIndex((variantIndex + 1) % PREMIUM_TEASER_VARIANT_COUNT)
+            analyticsHelper.logPremiumTeaserExibido(variantIndex)
+            _premiumTeaserEvent.trySend(variantIndex)
         }
     }
 
-    fun showInterstitial(activity: Activity) {
-        adManager.showInterstitialIfAvailable(activity)
-    }
-
     companion object {
-        private const val INTERSTITIAL_SWIPE_THRESHOLD = 10
+        private const val PREMIUM_TEASER_SWIPE_THRESHOLD = 10
         private const val FREE_FAVORITE_LIMIT = 20
         private const val MIN_STREAK_DAYS_TO_DISPLAY = 3
     }

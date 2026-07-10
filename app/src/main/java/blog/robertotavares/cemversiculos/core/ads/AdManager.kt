@@ -12,8 +12,6 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.OnUserEarnedRewardListener
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.ump.ConsentInformation
@@ -38,17 +36,11 @@ class AdManager @Inject constructor(
     private val _isMobileAdsInitialized = MutableStateFlow(false)
     val isMobileAdsInitialized = _isMobileAdsInitialized.asStateFlow()
 
-    private var interstitialAd: InterstitialAd? = null
-    private var isLoadingInterstitial = false
-
     private var rewardedAd: RewardedAd? = null
     private var isLoadingRewardedAd = false
 
     val bannerAdUnitId: String
         get() = if (BuildConfig.DEBUG) TEST_BANNER_AD_UNIT_ID else BuildConfig.ADMOB_BANNER_AD_UNIT_ID
-
-    private val interstitialAdUnitId: String
-        get() = if (BuildConfig.DEBUG) TEST_INTERSTITIAL_AD_UNIT_ID else BuildConfig.ADMOB_INTERSTITIAL_AD_UNIT_ID
 
     private val rewardedAdUnitId: String
         get() = if (BuildConfig.DEBUG) TEST_REWARDED_AD_UNIT_ID else BuildConfig.ADMOB_REWARDED_AD_UNIT_ID
@@ -91,64 +83,8 @@ class AdManager @Inject constructor(
         if (isPremium || _isMobileAdsInitialized.value) return
         MobileAds.initialize(context) {
             _isMobileAdsInitialized.value = true
-            loadInterstitial()
             loadRewardedAd()
         }
-    }
-
-    fun loadInterstitial() {
-        if (isPremium || !_isMobileAdsInitialized.value || isLoadingInterstitial || interstitialAd != null) return
-
-        isLoadingInterstitial = true
-        InterstitialAd.load(
-            context,
-            interstitialAdUnitId,
-            AdRequest.Builder().build(),
-            object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                    isLoadingInterstitial = false
-                }
-
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    interstitialAd = null
-                    isLoadingInterstitial = false
-                }
-            }
-        )
-    }
-
-    /**
-     * Exibe o interstitial já carregado, se houver. Sempre no-op para usuários Premium.
-     * Depois de exibido (ou se não houver anúncio pronto), dispara o carregamento do próximo.
-     */
-    fun showInterstitialIfAvailable(activity: Activity, onAdDismissed: () -> Unit = {}) {
-        if (isPremium) {
-            onAdDismissed()
-            return
-        }
-
-        val ad = interstitialAd
-        if (ad == null) {
-            loadInterstitial()
-            onAdDismissed()
-            return
-        }
-
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                interstitialAd = null
-                loadInterstitial()
-                onAdDismissed()
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                interstitialAd = null
-                loadInterstitial()
-                onAdDismissed()
-            }
-        }
-        ad.show(activity)
     }
 
     fun loadRewardedAd() {
@@ -214,7 +150,6 @@ class AdManager @Inject constructor(
 
         // IDs de teste oficiais do Google (https://developers.google.com/admob/android/test-ads)
         private const val TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/9214589741"
-        private const val TEST_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
         private const val TEST_REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
     }
 }

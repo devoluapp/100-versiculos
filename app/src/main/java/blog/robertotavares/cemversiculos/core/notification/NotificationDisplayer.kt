@@ -85,10 +85,11 @@ class NotificationDisplayer @Inject constructor(
         }
         val dismissPi = PendingIntent.getBroadcast(context, 3, dismissIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
-        // Sem setAutoCancel: a notificação não deve sumir sozinha ao ser tocada (nem pelo
-        // conteúdo, nem pelos botões), pois isso impedia o usuário de voltar à bandeja para
-        // terminar de ler o versículo. A saída explícita agora é o botão Excluir (ou o gesto
-        // de arrastar do sistema).
+        // setAutoCancel(false) explícito (era o default mesmo sem chamar o método, mas
+        // deixamos explícito para não haver dúvida): a notificação não deve sumir sozinha ao
+        // ser tocada (nem pelo conteúdo, nem pelos botões), pois isso impedia o usuário de
+        // voltar à bandeja para terminar de ler o versículo. A saída explícita agora é o botão
+        // Excluir (ou o gesto de arrastar do sistema).
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_bible)
             .setContentTitle(personalizedTitle)
@@ -96,6 +97,7 @@ class NotificationDisplayer @Inject constructor(
             .setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setContentIntent(contentPi)
+            .setAutoCancel(false)
             .addAction(android.R.drawable.ic_menu_share, "Compartilhar", shareAppPi)
             .addAction(android.R.drawable.ic_media_next, "Próximo", nextPi)
             .addAction(android.R.drawable.ic_menu_delete, "Excluir", dismissPi)

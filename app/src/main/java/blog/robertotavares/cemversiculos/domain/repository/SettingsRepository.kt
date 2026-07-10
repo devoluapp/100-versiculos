@@ -45,6 +45,9 @@ interface SettingsRepository {
     fun saveStreakDays(count: Int)
     fun getLastStreakDate(): String?
     fun saveLastStreakDate(date: String)
+
+    fun getPremiumTeaserVariantIndex(): Int
+    fun savePremiumTeaserVariantIndex(index: Int)
 }
 
 data class WidgetVerse(val text: String, val reference: String?, val contentId: Long = 0L)

@@ -143,4 +143,12 @@ class PreferenceManager @Inject constructor(
     }
 
     fun getLastStreakDate(): String? = sharedPreferences.getString("last_streak_date", null)
+
+    fun savePremiumTeaserVariantIndex(index: Int) {
+        sharedPreferences.edit { putInt("premium_teaser_variant_index", index) }
+    }
+
+    fun getPremiumTeaserVariantIndex(): Int {
+        return sharedPreferences.getInt("premium_teaser_variant_index", 0)
+    }
 }

@@ -41,8 +41,16 @@ class SettingsViewModel @Inject constructor(
     private val _hasNotificationPermission = MutableStateFlow(false)
     val hasNotificationPermission = _hasNotificationPermission.asStateFlow()
 
+    private val _hasBatteryOptimizationExemption = MutableStateFlow(false)
+    val hasBatteryOptimizationExemption = _hasBatteryOptimizationExemption.asStateFlow()
+
     fun checkPermissions(context: Context) {
         _hasNotificationPermission.value = PermissionManager.hasNotificationPermission(context)
+        _hasBatteryOptimizationExemption.value = PermissionManager.hasBatteryOptimizationExemption(context)
+    }
+
+    fun requestIgnoreBatteryOptimizations(context: Context) {
+        PermissionManager.requestIgnoreBatteryOptimizations(context)
     }
 
     fun updateUserName(name: String) {

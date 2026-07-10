@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.ShareUtils
 import blog.robertotavares.cemversiculos.data.local.ContentItemEntity
+import blog.robertotavares.cemversiculos.presentation.paywall.PremiumTeaserDialog
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -68,6 +69,7 @@ fun HomeScreen(
     val favoriteCount by viewModel.favoriteCount.collectAsState()
 
     var showTutorial by remember { mutableStateOf(!viewModel.isOnboardingCompleted()) }
+    var teaserVariantIndex by remember { mutableStateOf<Int?>(null) }
 
     val stableContents = remember(contents) { contents }
 
@@ -111,10 +113,8 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.interstitialEvent.collect {
-            (context as? Activity)?.let { activity ->
-                viewModel.showInterstitial(activity)
-            }
+        viewModel.premiumTeaserEvent.collect { variantIndex ->
+            teaserVariantIndex = variantIndex
         }
     }
 
@@ -304,6 +304,17 @@ fun HomeScreen(
 
         if (showTutorial) {
             TutorialModal(onDismiss = { showTutorial = false })
+        }
+
+        teaserVariantIndex?.let { variantIndex ->
+            PremiumTeaserDialog(
+                variantIndex = variantIndex,
+                onViewPlans = {
+                    teaserVariantIndex = null
+                    onNavigateToPaywall()
+                },
+                onDismiss = { teaserVariantIndex = null }
+            )
         }
 
         if (showFavoriteLimitDialog) {

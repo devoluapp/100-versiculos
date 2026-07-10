@@ -37,6 +37,8 @@
     <string name="dialog_permissions_title">Permissões Necessárias</string>
     <string name="dialog_permissions_message">Para que o %1$s funcione corretamente, precisamos de algumas permissões:</string>
     <string name="dialog_permission_notifications">• Notificações: Para enviar versículos diários.</string>
+    <string name="desc_battery_optimization">O sistema pode atrasar ou bloquear os lembretes quando a otimização de bateria está ativa para este app. Desative para receber os versículos no horário certo, mesmo com o app fechado.</string>
+    <string name="action_disable_battery_optimization">PERMITIR NOTIFICAÇÕES EM SEGUNDO PLANO</string>
 
     <!-- Tela Home -->
     <string name="label_premium_active">Premium Ativado</string>
@@ -127,7 +129,26 @@
     <string name="label_your_name_optional">Seu Nome (Opcional)</string>
     <string name="title_theme_step">Escolha um estilo</string>
     <string name="title_categories_step">O que você busca?</string>
-    <string name="desc_permission_notifications">Permita as notificações para que possamos enviar versículos inspiradores ao longo do seu dia.</string>
+    <string name="title_notification_intro">Receba a Palavra todos os dias</string>
+    <string name="desc_notification_intro">Ative os lembretes para receber versículos inspiradores nos horários que você preferir.</string>
+    <string name="action_enable_reminders">ATIVAR LEMBRETES</string>
+    <string name="title_notification_config">Quando você quer ser lembrado?</string>
+    <string name="desc_notification_config">Ajuste a frequência e o horário. Você pode mudar isso depois em Configurações.</string>
+    <string name="action_confirm_and_continue">CONFIRMAR</string>
     <string name="title_tutorial_ready">Tudo pronto!</string>
     <string name="desc_tutorial_ready">Agora você está pronto para começar sua jornada. Aproveite cada versículo e deixe que eles transformem o seu dia.</string>
+
+    <!-- Teaser premium (substitui o interstitial a cada 10 versículos) -->
+    <string name="action_view_premium_plans">VER PLANOS PREMIUM</string>
+    <string name="action_continue_reading">Continuar lendo</string>
+    <string name="teaser_title_no_ads">Leitura sem interrupções</string>
+    <string name="teaser_desc_no_ads">Assinantes Premium leem sem nenhum anúncio — só você e a Palavra, sem distrações.</string>
+    <string name="teaser_title_categories">Todas as categorias liberadas</string>
+    <string name="teaser_desc_categories">Premium libera as 11 categorias permanentemente: Fé, Ansiedade, Luto, Perdão e muito mais.</string>
+    <string name="teaser_title_favorites">Favoritos sem limite</string>
+    <string name="teaser_desc_favorites">No plano grátis você guarda até 20 versículos. Premium guarda quantos o seu coração precisar.</string>
+    <string name="teaser_title_notifications">Lembretes no seu ritmo</string>
+    <string name="teaser_desc_notifications">Premium libera até 20 notificações por dia, no horário que fizer sentido para você.</string>
+    <string name="teaser_title_support">Ajude este app a continuar existindo</string>
+    <string name="teaser_desc_support">Sua assinatura ajuda a manter este aplicativo no ar e a levar a Palavra de Deus a mais pessoas todos os dias.</string>
 </resources>

@@ -1,6 +1,7 @@
 package blog.robertotavares.cemversiculos.presentation.onboarding
 
 import android.Manifest
+import android.app.TimePickerDialog
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -35,17 +36,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import blog.robertotavares.cemversiculos.R
+import blog.robertotavares.cemversiculos.core.utils.PermissionManager
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
-import blog.robertotavares.cemversiculos.presentation.paywall.PaywallScreen
 import blog.robertotavares.cemversiculos.presentation.settings.ThemePreview
+import blog.robertotavares.cemversiculos.presentation.settings.TimeSettingCard
+import java.util.Locale
 
 enum class OnboardingStep {
     Welcome,
     Name,
     Themes,
     Categories,
-    Permissions,
-    Paywall,
+    NotificationIntro,
+    NotificationConfig,
     Tutorial
 }
 
@@ -59,13 +62,16 @@ fun OnboardingScreen(
     val userName by viewModel.userName.collectAsState()
     val selectedCategories by viewModel.selectedCategories.collectAsState()
     val selectedTheme by viewModel.selectedTheme.collectAsState()
+    val notificationFrequency by viewModel.notificationFrequency.collectAsState()
+    val notificationStartTime by viewModel.notificationStartTime.collectAsState()
+    val notificationEndTime by viewModel.notificationEndTime.collectAsState()
     val isPremium by homeViewModel.isPremium.collectAsState()
     val context = LocalContext.current
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
-        currentStep = if (isPremium) OnboardingStep.Tutorial else OnboardingStep.Paywall
+        currentStep = OnboardingStep.NotificationConfig
     }
 
     Box(
@@ -98,20 +104,36 @@ fun OnboardingScreen(
                     selectedCategories = selectedCategories,
                     isPremium = isPremium,
                     onToggle = viewModel::toggleCategory,
-                    onNext = { currentStep = OnboardingStep.Permissions }
+                    onNext = { currentStep = OnboardingStep.NotificationIntro }
                 )
-                OnboardingStep.Permissions -> PermissionsStep(
+                OnboardingStep.NotificationIntro -> NotificationIntroStep(
                     onRequest = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            currentStep = if (isPremium) OnboardingStep.Tutorial else OnboardingStep.Paywall
+                            currentStep = OnboardingStep.NotificationConfig
                         }
                     },
-                    onSkip = { currentStep = if (isPremium) OnboardingStep.Tutorial else OnboardingStep.Paywall }
+                    onSkip = { currentStep = OnboardingStep.Tutorial }
                 )
-                OnboardingStep.Paywall -> PaywallScreen(
-                    onDismiss = { currentStep = OnboardingStep.Tutorial }
+                OnboardingStep.NotificationConfig -> NotificationConfigStep(
+                    frequency = notificationFrequency,
+                    startTime = notificationStartTime,
+                    endTime = notificationEndTime,
+                    onFrequencyChange = viewModel::updateNotificationFrequency,
+                    onStartTimeChange = viewModel::updateNotificationStartTime,
+                    onEndTimeChange = viewModel::updateNotificationEndTime,
+                    onConfirm = {
+                        viewModel.confirmNotifications(context)
+                        // Pede a isenção de otimização de bateria logo após configurar os
+                        // lembretes: é o momento em que o motivo fica óbvio para o usuário, e é
+                        // o que garante que a agenda que ele acabou de configurar realmente
+                        // dispare em segundo plano (ver PermissionManager.hasBatteryOptimizationExemption).
+                        if (!PermissionManager.hasBatteryOptimizationExemption(context)) {
+                            PermissionManager.requestIgnoreBatteryOptimizations(context)
+                        }
+                        currentStep = OnboardingStep.Tutorial
+                    }
                 )
                 OnboardingStep.Tutorial -> TutorialStep {
                     viewModel.completeOnboarding()
@@ -373,7 +395,7 @@ fun CategorySelectCard(name: String, icon: ImageVector, isSelected: Boolean, isL
 }
 
 @Composable
-fun PermissionsStep(onRequest: () -> Unit, onSkip: () -> Unit) {
+fun NotificationIntroStep(onRequest: () -> Unit, onSkip: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -387,13 +409,14 @@ fun PermissionsStep(onRequest: () -> Unit, onSkip: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = stringResource(R.string.section_reminders),
+            text = stringResource(R.string.title_notification_intro),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.desc_permission_notifications),
+            text = stringResource(R.string.desc_notification_intro),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -404,9 +427,104 @@ fun PermissionsStep(onRequest: () -> Unit, onSkip: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text(stringResource(R.string.action_allow), modifier = Modifier.padding(8.dp))
+            Text(stringResource(R.string.action_enable_reminders), modifier = Modifier.padding(8.dp))
         }
         TextButton(onClick = onSkip) { Text(stringResource(R.string.action_not_now)) }
+    }
+}
+
+@Composable
+fun NotificationConfigStep(
+    frequency: Int,
+    startTime: String,
+    endTime: String,
+    onFrequencyChange: (Int) -> Unit,
+    onStartTimeChange: (String) -> Unit,
+    onEndTimeChange: (String) -> Unit,
+    onConfirm: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = stringResource(R.string.title_notification_config),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.desc_notification_config),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.label_times_per_day), style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { if (frequency > 1) onFrequencyChange(frequency - 1) }) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_decrease))
+                }
+                Text(
+                    frequency.toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                IconButton(onClick = { if (frequency < 5) onFrequencyChange(frequency + 1) }) {
+                    Icon(Icons.Default.KeyboardArrowUp, contentDescription = stringResource(R.string.cd_increase))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TimeSettingCard(
+                label = stringResource(R.string.label_start_time),
+                time = startTime,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    val parts = startTime.split(":")
+                    TimePickerDialog(context, { _, h, m ->
+                        onStartTimeChange(String.format(Locale.getDefault(), "%02d:%02d", h, m))
+                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                }
+            )
+            TimeSettingCard(
+                label = stringResource(R.string.label_end_time),
+                time = endTime,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    val parts = endTime.split(":")
+                    TimePickerDialog(context, { _, h, m ->
+                        onEndTimeChange(String.format(Locale.getDefault(), "%02d:%02d", h, m))
+                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
+        Button(
+            onClick = onConfirm,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(stringResource(R.string.action_confirm_and_continue), modifier = Modifier.padding(8.dp))
+        }
     }
 }
 

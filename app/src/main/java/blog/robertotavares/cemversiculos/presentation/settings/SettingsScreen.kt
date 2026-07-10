@@ -39,7 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import blog.robertotavares.cemversiculos.BuildConfig
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
@@ -62,6 +65,7 @@ fun SettingsScreen(
     val frequency by viewModel.notificationFrequency.collectAsState()
     val selectedTheme by viewModel.selectedTheme.collectAsState()
     val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
+    val hasBatteryOptimizationExemption by viewModel.hasBatteryOptimizationExemption.collectAsState()
     val isPremium by homeViewModel.isPremium.collectAsState()
     val categoryUnlocksVersion by viewModel.categoryUnlocksVersion.collectAsState()
 
@@ -69,8 +73,19 @@ fun SettingsScreen(
     var showPermissionModal by remember { mutableStateOf(false) }
     var categoryToUnlock by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.checkPermissions(context)
+    // Reconsulta ao voltar ao primeiro plano (não só na entrada da tela): tanto a permissão de
+    // notificação quanto a isenção de otimização de bateria só mudam através de telas do sistema
+    // (diálogo do Android, ou Configurações do app) para as quais navegamos e voltamos - sem
+    // isto, o estado ficaria desatualizado até a tela ser recriada.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.checkPermissions(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -279,6 +294,29 @@ fun SettingsScreen(
                                     }, parts[0].toInt(), parts[1].toInt(), true).show()
                                 }
                             )
+                        }
+
+                        if (!hasBatteryOptimizationExemption) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    stringResource(R.string.desc_battery_optimization),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                                Button(
+                                    onClick = { viewModel.requestIgnoreBatteryOptimizations(context) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Icon(Icons.Default.BatteryAlert, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(stringResource(R.string.action_disable_battery_optimization))
+                                }
+                            }
                         }
                     }
                 }

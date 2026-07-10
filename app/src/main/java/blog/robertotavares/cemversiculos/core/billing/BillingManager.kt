@@ -2,18 +2,28 @@ package blog.robertotavares.cemversiculos.core.billing
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
+import blog.robertotavares.cemversiculos.core.analytics.AnalyticsHelper
 import blog.robertotavares.cemversiculos.domain.repository.SettingsRepository
 import com.android.billingclient.api.*
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BillingManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val analyticsHelper: AnalyticsHelper
 ) : PurchasesUpdatedListener {
 
     private val billingClient = BillingClient.newBuilder(context)
@@ -32,31 +42,81 @@ class BillingManager @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
+    // Escopo de vida do singleton (app inteiro), só para o timeout de segurança abaixo.
+    private val managerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var loadingTimeoutJob: Job? = null
+
     init {
         startConnection()
     }
 
     private fun startConnection() {
         _isLoading.value = true
+        armLoadingTimeout()
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     queryProducts()
                     checkActivePurchases()
                 } else {
+                    reportBillingFailure("setup", billingResult)
                     _isLoading.value = false
                 }
             }
 
             override fun onBillingServiceDisconnected() {
+                reportBillingFailure("service_disconnected", null)
                 _isLoading.value = false
             }
         })
     }
 
+    /**
+     * Trava de segurança: a correção anterior (setar isLoading=false em todo desfecho do
+     * BillingClientStateListener/queryProductDetailsAsync) partia do pressuposto de que o SDK
+     * SEMPRE chama algum callback de volta. Na prática isso continuou preso em "Carregando
+     * ofertas..." - ou seja, nem onBillingSetupFinished, nem onBillingServiceDisconnected, nem o
+     * callback de queryProductDetailsAsync estão disparando (serviço do Play trava a conexão
+     * silenciosamente em vez de retornar erro). Sem depender de nenhum callback do SDK, isto
+     * garante que a UI sempre sai do estado de loading em até TIMEOUT_MS, e loga esse caso
+     * separado ("timeout") para diferenciar de uma falha explícita do BillingClient.
+     */
+    private fun armLoadingTimeout() {
+        loadingTimeoutJob?.cancel()
+        loadingTimeoutJob = managerScope.launch {
+            delay(LOADING_TIMEOUT_MS)
+            if (_isLoading.value) {
+                reportBillingFailure("timeout", null)
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Loga em Logcat + Crashlytics + Analytics todo desfecho de billing que não seja OK. Sem
+     * isto, "a paywall não carrega" em produção é impossível de diagnosticar remotamente: o
+     * código não tem como distinguir se o BillingClient nunca conectou, se a consulta voltou
+     * ITEM_UNAVAILABLE (produto não existe/não está ativo no Play Console), BILLING_UNAVAILABLE
+     * (sem conta de pagamentos configurada) ou outro código - cada um aponta para uma causa e
+     * correção diferentes.
+     */
+    private fun reportBillingFailure(stage: String, billingResult: BillingResult?) {
+        val code = billingResult?.responseCode
+        val message = billingResult?.debugMessage
+        Log.w(TAG, "Falha de billing em '$stage': code=$code message=$message")
+        FirebaseCrashlytics.getInstance().apply {
+            setCustomKey("billing_failure_stage", stage)
+            code?.let { setCustomKey("billing_failure_code", it) }
+            recordException(BillingFailureException(stage, code, message))
+        }
+        analyticsHelper.logBillingErro(stage, code)
+    }
+
     /** Chamado pela tela de paywall quando o usuário toca em "Tentar novamente". */
     fun retry() {
         if (billingClient.isReady) {
+            _isLoading.value = true
+            armLoadingTimeout()
             queryProducts()
         } else {
             startConnection()
@@ -84,10 +144,16 @@ class BillingManager @Inject constructor(
             .build()
 
         billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-            _products.value = if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                productDetailsList
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                _products.value = productDetailsList
+                if (productDetailsList.isEmpty()) {
+                    // OK mas lista vazia: os IDs de produto não existem ou não estão ativos no
+                    // Play Console para este app/conta (causa mais comum de "paywall vazia").
+                    reportBillingFailure("query_products_empty", billingResult)
+                }
             } else {
-                emptyList()
+                _products.value = emptyList()
+                reportBillingFailure("query_products", billingResult)
             }
             _isLoading.value = false
         }
@@ -165,5 +231,14 @@ class BillingManager @Inject constructor(
             inappChecked = true
             evaluate()
         }
+    }
+
+    /** Carrega mensagem/código do BillingResult no Crashlytics, já que a stack trace sozinha não diz o motivo. */
+    private class BillingFailureException(stage: String, code: Int?, message: String?) :
+        Exception("Billing falhou em '$stage': code=$code message=$message")
+
+    companion object {
+        private const val TAG = "BillingManager"
+        private const val LOADING_TIMEOUT_MS = 10_000L
     }
 }
