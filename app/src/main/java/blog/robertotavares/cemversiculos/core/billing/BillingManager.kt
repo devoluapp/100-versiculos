@@ -123,8 +123,15 @@ class BillingManager @Inject constructor(
         }
     }
 
+    /**
+     * A Billing Library exige que cada QueryProductDetailsParams contenha produtos de um único
+     * ProductType - misturar SUBS e INAPP na mesma lista lança IllegalArgumentException("All
+     * products should be of the same product type"), derrubando a paywall antes mesmo do
+     * callback rodar. Por isso a consulta é feita em duas chamadas separadas e os resultados são
+     * combinados, no mesmo padrão de junção já usado em checkActivePurchases().
+     */
     private fun queryProducts() {
-        val productList = listOf(
+        val subsProducts = listOf(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("mensal_990")
                 .setProductType(BillingClient.ProductType.SUBS)
@@ -132,30 +139,54 @@ class BillingManager @Inject constructor(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("anual_5900")
                 .setProductType(BillingClient.ProductType.SUBS)
-                .build(),
+                .build()
+        )
+        val inappProducts = listOf(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId("vitalicio_14900")
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build()
         )
 
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(productList)
-            .build()
+        val results = mutableListOf<ProductDetails>()
+        var subsDone = false
+        var inappDone = false
+        var hadError = false
 
-        billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                _products.value = productDetailsList
-                if (productDetailsList.isEmpty()) {
+        fun finishIfDone() {
+            if (subsDone && inappDone) {
+                _products.value = results
+                if (results.isEmpty() && !hadError) {
                     // OK mas lista vazia: os IDs de produto não existem ou não estão ativos no
                     // Play Console para este app/conta (causa mais comum de "paywall vazia").
-                    reportBillingFailure("query_products_empty", billingResult)
+                    reportBillingFailure("query_products_empty", null)
                 }
-            } else {
-                _products.value = emptyList()
-                reportBillingFailure("query_products", billingResult)
+                _isLoading.value = false
             }
-            _isLoading.value = false
+        }
+
+        val subsParams = QueryProductDetailsParams.newBuilder().setProductList(subsProducts).build()
+        billingClient.queryProductDetailsAsync(subsParams) { billingResult, productDetailsList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                results.addAll(productDetailsList)
+            } else {
+                hadError = true
+                reportBillingFailure("query_products_subs", billingResult)
+            }
+            subsDone = true
+            finishIfDone()
+        }
+
+        val inappParams = QueryProductDetailsParams.newBuilder().setProductList(inappProducts).build()
+        billingClient.queryProductDetailsAsync(inappParams) { billingResult, productDetailsList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                results.addAll(productDetailsList)
+            } else {
+                hadError = true
+                reportBillingFailure("query_products_inapp", billingResult)
+            }
+            inappDone = true
+            finishIfDone()
         }
     }
 
