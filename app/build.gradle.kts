@@ -162,7 +162,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 
     // Google Play Billing
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:9.1.0")
 
     // Home screen widget (Glance) + atualização em background
     implementation("androidx.glance:glance-appwidget:1.1.1")

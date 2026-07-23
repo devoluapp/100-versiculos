@@ -166,9 +166,9 @@ class BillingManager @Inject constructor(
         }
 
         val subsParams = QueryProductDetailsParams.newBuilder().setProductList(subsProducts).build()
-        billingClient.queryProductDetailsAsync(subsParams) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(subsParams) { billingResult, queryProductDetailsResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                results.addAll(productDetailsList)
+                results.addAll(queryProductDetailsResult.productDetailsList)
             } else {
                 hadError = true
                 reportBillingFailure("query_products_subs", billingResult)
@@ -178,9 +178,9 @@ class BillingManager @Inject constructor(
         }
 
         val inappParams = QueryProductDetailsParams.newBuilder().setProductList(inappProducts).build()
-        billingClient.queryProductDetailsAsync(inappParams) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(inappParams) { billingResult, queryProductDetailsResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                results.addAll(productDetailsList)
+                results.addAll(queryProductDetailsResult.productDetailsList)
             } else {
                 hadError = true
                 reportBillingFailure("query_products_inapp", billingResult)
