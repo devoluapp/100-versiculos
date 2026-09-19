@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import blog.robertotavares.cemversiculos.core.ads.AdManager
+import blog.robertotavares.cemversiculos.core.analytics.AnalyticsHelper
 import blog.robertotavares.cemversiculos.core.notification.NotificationReceiver
 import blog.robertotavares.cemversiculos.presentation.home.HomeScreen
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
@@ -32,13 +33,12 @@ class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
 
     @Inject lateinit var adManager: AdManager
+    @Inject lateinit var analyticsHelper: AnalyticsHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         intent?.let { handleIntent(it) }
-
-        adManager.requestConsentAndInitialize(this)
 
         setContent {
             val currentTheme by homeViewModel.currentTheme.collectAsState()
@@ -46,6 +46,15 @@ class MainActivity : ComponentActivity() {
                 MainApp(homeViewModel)
             }
         }
+
+        // Chamado depois de setContent, nunca antes: o SDK de consentimento (UMP) pode tentar
+        // exibir o formulário de consentimento anexado à janela da Activity assim que
+        // requestConsentInfoUpdate retorna, e se isso acontece antes do container de conteúdo
+        // existir, o Android lança "Window couldn't find content container view" e fecha a
+        // Activity. Esse era o crash mais frequente do app no Crashlytics (aberto desde a
+        // v1.6, MainActivity.onCreate) - a própria amostra oficial do Google para o UMP SDK
+        // também chama setContentView antes de pedir consentimento, pelo mesmo motivo.
+        adManager.requestConsentAndInitialize(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -58,6 +67,11 @@ class MainActivity : ComponentActivity() {
         if (contentId != -1L) {
             val shouldShare = intent.getBooleanExtra(NotificationReceiver.EXTRA_SHOULD_SHARE, false)
             homeViewModel.setTargetContent(contentId, shouldShare)
+            // Único ponto em que sabemos que a abertura do app veio de um toque em notificação
+            // (corpo ou botão Compartilhar) - EXTRA_CONTENT_ID só é setado pelos PendingIntents
+            // montados em NotificationDisplayer. Sem isto não havia como medir se as
+            // notificações realmente trazem o usuário de volta.
+            analyticsHelper.logNotificacaoAberta()
         }
     }
 }

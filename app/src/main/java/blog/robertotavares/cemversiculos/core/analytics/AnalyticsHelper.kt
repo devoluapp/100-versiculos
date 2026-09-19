@@ -48,6 +48,11 @@ class AnalyticsHelper @Inject constructor(
         })
     }
 
+    /** Disparado em MainActivity quando o app é aberto a partir de um toque na notificação. */
+    fun logNotificacaoAberta() {
+        firebaseAnalytics.logEvent(EVENT_NOTIFICACAO_ABERTA, Bundle())
+    }
+
     /** Ver comentário em BillingManager.reportBillingFailure sobre por que isto existe. */
     fun logBillingErro(estagio: String, codigoResposta: Int?) {
         firebaseAnalytics.logEvent(EVENT_BILLING_ERRO, Bundle().apply {
@@ -69,6 +74,7 @@ class AnalyticsHelper @Inject constructor(
         private const val EVENT_VERSICULO_COMPARTILHADO = "versiculo_compartilhado"
         private const val EVENT_REWARDED_ASSISTIDO = "rewarded_assistido"
         private const val EVENT_NOTIFICACAO_EXIBIDA = "notificacao_exibida"
+        private const val EVENT_NOTIFICACAO_ABERTA = "notificacao_aberta"
         private const val EVENT_BILLING_ERRO = "billing_erro"
         private const val EVENT_PREMIUM_TEASER_EXIBIDO = "premium_teaser_exibido"
 

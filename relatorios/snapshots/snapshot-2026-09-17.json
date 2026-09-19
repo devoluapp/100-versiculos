@@ -1,0 +1,47 @@
+{
+  "app": "blog.robertotavares.cemversiculos",
+  "coletado_em": "2026-09-17",
+  "play_console_28d": {
+    "janela": "2026-08-20..2026-09-16",
+    "impressoes": 2150, "impressoes_var": -0.47,
+    "aquisicoes": 35, "aquisicoes_var": -0.67,
+    "primeiros_acessos": 14, "primeiros_acessos_var": -0.75,
+    "ativos_mes": 49, "ativos_mes_var": -0.25,
+    "retencao_7d_dispositivos": 2, "retencao_7d_var": -0.82,
+    "pagina_visitantes": 165, "pagina_visitantes_var": -0.42,
+    "pagina_cliques_instalacao": 48, "pagina_cliques_var": -0.56,
+    "pagina_taxa_cliques": 0.29, "pagina_taxa_cliques_var": -0.24,
+    "conversao_90d": 0.3644,
+    "explorar_aquisicoes_90d": 136,
+    "instalacoes_total": 48,
+    "nota": 5.0, "nota_usuarios": 2, "resenhas": 0,
+    "dau_mau": 0.137, "perda_usuarios": 0.0335
+  },
+  "analytics_28d": {
+    "usuarios": 82,
+    "eventos": {
+      "notificacao_exibida": [3119, 54], "user_engagement": [777, 70], "screen_view": [552, 71],
+      "session_start": [466, 72], "ad_impression": [219, 26], "premium_teaser_exibido": [60, 10],
+      "versiculo_compartilhado": [60, 24], "app_remove": [41, 41], "first_open": [40, 40],
+      "app_exception": [30, 17], "categoria_selecionada": [29, 23], "billing_erro": [13, 4],
+      "paywall_visto": [13, 8], "ad_click": [10, 6], "assinatura_iniciada": [1, 1]
+    },
+    "formato_eventos": "[contagem, usuarios]",
+    "receita_usd": 0.16
+  },
+  "crashlytics": {
+    "usuarios_sem_falhas_90d": 0.7621, "sessoes_sem_falhas_90d": 0.9287,
+    "usuarios_sem_falhas_7d": 0.8947, "sessoes_sem_falhas_7d": 0.9806,
+    "versao_recente": "1.11 (11)",
+    "issues_abertas_90d": [
+      {"id": "356f8edf0ac5ce6fe52cca1a0cd13cb1", "local": "MainActivity.kt:43", "tipo": "RuntimeException content container", "eventos": 72, "usuarios": 32},
+      {"id": "d64e2963112d7dcfebc018e24248040e", "local": "TimePickerSpinnerDelegate.java:480", "tipo": "NPE EditText.hasFocus", "eventos": 17, "usuarios": 11},
+      {"id": "babbf348be7e1a6e02bf8b613922247b", "local": "ActionTrampoline.kt:93", "tipo": "IllegalArgumentException trampoline", "eventos": 7, "usuarios": 7},
+      {"id": "846fb9b0973edf51d0776db0f707d38f", "local": "MainActivity.kt:43", "tipo": "NPE getChildAt", "eventos": 4, "usuarios": 3},
+      {"id": "92355cdae5a785ea1e0adcee696a0834", "local": "BillingManager.kt:143", "tipo": "IllegalArgumentException same product type", "eventos": 4, "usuarios": 3},
+      {"id": "a0b58a19c21e10b4b97c91d815bb58ec", "local": "ProxyBillingActivity (billing 7.1.1)", "tipo": "NPE getIntentSender", "eventos": 4, "usuarios": 4},
+      {"id": "20559a5ef58e9ce04e300822d47e75b7", "local": "WindowManagerGlobal.java:756", "tipo": "View not attached", "eventos": 1, "usuarios": 1}
+    ]
+  },
+  "conta": {"espelhar_imagens": "Removido pelo Google", "teleprompter": "Teste fechado"}
+}

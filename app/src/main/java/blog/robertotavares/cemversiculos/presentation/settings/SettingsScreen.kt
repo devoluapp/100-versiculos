@@ -2,7 +2,6 @@ package blog.robertotavares.cemversiculos.presentation.settings
 
 import android.Manifest
 import android.app.Activity
-import android.app.TimePickerDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import blog.robertotavares.cemversiculos.core.utils.showSafeTimePickerDialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -278,9 +278,9 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = {
                                     val parts = startTime.split(":")
-                                    TimePickerDialog(context, { _, h, m ->
+                                    showSafeTimePickerDialog(context, parts[0].toInt(), parts[1].toInt()) { h, m ->
                                         viewModel.updateStartTime(context, String.format(Locale.getDefault(), "%02d:%02d", h, m))
-                                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                                    }
                                 }
                             )
                             TimeSettingCard(
@@ -289,9 +289,9 @@ fun SettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = {
                                     val parts = endTime.split(":")
-                                    TimePickerDialog(context, { _, h, m ->
+                                    showSafeTimePickerDialog(context, parts[0].toInt(), parts[1].toInt()) { h, m ->
                                         viewModel.updateEndTime(context, String.format(Locale.getDefault(), "%02d:%02d", h, m))
-                                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                                    }
                                 }
                             )
                         }

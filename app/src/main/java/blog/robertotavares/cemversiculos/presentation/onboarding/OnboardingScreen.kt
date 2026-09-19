@@ -1,7 +1,6 @@
 package blog.robertotavares.cemversiculos.presentation.onboarding
 
 import android.Manifest
-import android.app.TimePickerDialog
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import blog.robertotavares.cemversiculos.R
 import blog.robertotavares.cemversiculos.core.utils.PermissionManager
+import blog.robertotavares.cemversiculos.core.utils.showSafeTimePickerDialog
 import blog.robertotavares.cemversiculos.presentation.home.HomeViewModel
 import blog.robertotavares.cemversiculos.presentation.settings.ThemePreview
 import blog.robertotavares.cemversiculos.presentation.settings.TimeSettingCard
@@ -499,9 +499,9 @@ fun NotificationConfigStep(
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val parts = startTime.split(":")
-                    TimePickerDialog(context, { _, h, m ->
+                    showSafeTimePickerDialog(context, parts[0].toInt(), parts[1].toInt()) { h, m ->
                         onStartTimeChange(String.format(Locale.getDefault(), "%02d:%02d", h, m))
-                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                    }
                 }
             )
             TimeSettingCard(
@@ -510,9 +510,9 @@ fun NotificationConfigStep(
                 modifier = Modifier.weight(1f),
                 onClick = {
                     val parts = endTime.split(":")
-                    TimePickerDialog(context, { _, h, m ->
+                    showSafeTimePickerDialog(context, parts[0].toInt(), parts[1].toInt()) { h, m ->
                         onEndTimeChange(String.format(Locale.getDefault(), "%02d:%02d", h, m))
-                    }, parts[0].toInt(), parts[1].toInt(), true).show()
+                    }
                 }
             )
         }
